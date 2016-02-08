@@ -48,8 +48,6 @@ func main() {
 	}
 	modules.Info.Println("Binded")
 	
-	//search_request := ldap.NewSearchRequest("ou=Tapestry,dc=internal,dc=media,dc=net", ldap.ScopeWholeSubtree, ldap.DerefAlways, 0, false, "", "", nil)
-	
 	search_request := ldap.NewSearchRequest(ADBaseDN.String(), ldap.ScopeWholeSubtree, ldap.DerefAlways, 0, 0,false, "(cn=*)", attributes, nil)
 	
 	sr, err := connection.SearchWithPaging(search_request, uint32(ADPage.MustInt(100)))
