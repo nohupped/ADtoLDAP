@@ -31,6 +31,7 @@ func main() {
 	for _, i := range ADAttr.Strings(","){
 		ADAttribute = append(ADAttribute, i)
 	}
+<<<<<<< HEAD
 	modules.Info.Println("\n\tADHost: ", ADHost, "\n\tADPort: ", ADPort, "\n\tADPageSize: ",
 		ADPage, "\n\tADBaseDN: ", ADBaseDN, "\n\tADAttr: ", ADAttr, "\n\tADFilter: ", ADFilter)
 
@@ -41,6 +42,31 @@ func main() {
 	ADElements := SyncModules.GetFromAD(connect, ADBaseDN.String(), ADFilter.String(), ADAttribute, uint32(ADPage.MustInt(500)))
 	for _, x := range ADElements {
 		fmt.Println(x.DN)
+=======
+	modules.Info.Println(attributes)
+	modules.Info.Println("Connecting to ldap server", ADHost.String())
+	connection := ldap.NewLDAPConnection(ADHost.String(), ldap_port)
+	modules.Info.Println(connection)
+	//Connect
+	err := connection.Connect()
+	if err != nil{
+		modules.Error.Println(err)
+	}
+	defer connection.Close()
+	//Bind
+	err = connection.Bind(ADUsername.String(), ADPassword.String())
+	if err != nil {
+		modules.Error.Println(err)
+	}
+	modules.Info.Println("Binded")
+	
+	search_request := ldap.NewSearchRequest(ADBaseDN.String(), ldap.ScopeWholeSubtree, ldap.DerefAlways, 0, 0,false, "(cn=*)", attributes, nil)
+	
+	sr, err := connection.SearchWithPaging(search_request, uint32(ADPage.MustInt(100)))
+	for _, i := range sr.Entries {
+		fmt.Println(i.String())
+		fmt.Println("\n\n\n")
+>>>>>>> 404c6ff819a5a4cfbaf9bdc47fda2ba472e5674a
 	}
 	
 }
