@@ -2,12 +2,10 @@ package main
 
 
 import (
-	"fmt"
-	"github.com/mavricknz/ldap"
 	modules "faimodules"
 	"os/user"
 	"SyncModules"
-	
+	"fmt"
 )
 
 func main() {
@@ -25,44 +23,24 @@ func main() {
 	ADPassword, _ := ADGlobal.GetKey("password")
 	ADBaseDN, _ := ADGlobal.GetKey("basedn")
 	ADAttr, _ := ADGlobal.GetKey("attr")
-	ldap_port := uint16(ADPort.MustInt(389));
+	ADFilter, _ := ADGlobal.GetKey("filter")
+	ldap_port := uint16(ADPort.MustInt(389))
 
-	attributes := make([]string, 0, 1)
+
+	ADAttribute := make([]string, 0, 1)
 	for _, i := range ADAttr.Strings(","){
-		attributes = append(attributes, i)
+		ADAttribute = append(ADAttribute, i)
 	}
-	modules.Info.Println(attributes)
-	modules.Info.Println("Connecting to ldap server", ADHost.String())
-	connection := ldap.NewLDAPConnection(ADHost.String(), ldap_port)
-	modules.Info.Println(connection)
-	//Connect
-	err := connection.Connect()
-	if err != nil{
-		modules.Error.Println(err)
+	modules.Info.Println("\n\tADHost: ", ADHost, "\n\tADPort: ", ADPort, "\n\tADPageSize: ",
+		ADPage, "\n\tADBaseDN: ", ADBaseDN, "\n\tADAttr: ", ADAttr, "\n\tADFilter: ", ADFilter)
+
+	connect := SyncModules.ConnectToAD(ADHost.String(), ldap_port, ADUsername.String(), ADPassword.String())
+	defer modules.Info.Println(connect.Addr, "closed")
+	defer connect.Close()
+	defer modules.Info.Println("Closing connection", connect.Addr)
+	ADElements := SyncModules.GetFromAD(connect, ADBaseDN.String(), ADFilter.String(), ADAttribute, uint32(ADPage.MustInt(500)))
+	for _, x := range ADElements {
+		fmt.Println(x.DN)
 	}
-	defer connection.Close()
-	//Bind
-	err = connection.Bind(ADUsername.String(), ADPassword.String())
-	if err != nil {
-		modules.Error.Println(err)
-	}
-	modules.Info.Println("Binded")
-	
-	//search_request := ldap.NewSearchRequest("ou=Tapestry,dc=internal,dc=media,dc=net", ldap.ScopeWholeSubtree, ldap.DerefAlways, 0, false, "", "", nil)
-	
-	search_request := ldap.NewSearchRequest(ADBaseDN.String(), ldap.ScopeWholeSubtree, ldap.DerefAlways, 0, 0,false, "(cn=*)", attributes, nil)
-	
-	sr, err := connection.SearchWithPaging(search_request, uint32(ADPage.MustInt(100)))
-	for _, i := range sr.Entries {
-		fmt.Println(i.String())
-		fmt.Println("\n\n\n")
-	}
-	fmt.Println("Result gathered")
-	
-	
-	
-	
-	
-	
 	
 }
