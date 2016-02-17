@@ -1,0 +1,5 @@
+package gosyncmodules
+
+func GetFromLDAP()  {
+	
+}
