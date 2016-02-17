@@ -1,10 +1,9 @@
-package SyncModules
+package gosyncmodules
 
 
 type keyvalue map[string]interface{}
 
 type ADElement struct {
-	DN string
-	attributes []keyvalue
-	}
-
+DN string
+attributes []keyvalue
+}

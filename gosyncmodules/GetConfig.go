@@ -1,4 +1,4 @@
-package SyncModules
+package gosyncmodules
 
 import (
 	"gopkg.in/ini.v1"
