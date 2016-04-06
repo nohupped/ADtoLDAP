@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"os"
 	"gosyncmodules"
+	"reflect"
+	"os/signal"
 )
 
 func init()  {
@@ -16,6 +18,15 @@ func init()  {
 			"--sync to keep monitoring the changes and sync")
 		os.Exit(1)
 	}
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	go func(){
+		for sig := range c {
+			fmt.Println(sig.String(), "received, terminating.")
+			os.Exit(1)
+		}
+	}()
 }
 
 func main() {
@@ -26,7 +37,8 @@ func main() {
 	loggerMain := gosyncmodules.StartLog(logfileMain, username, TAG)
 	defer loggerMain.Close()
 	configFile := "/etc/ldapsync.ini"
-	gosyncmodules.CheckPerm(configFile)
+//TODO Remove the commented permcheck finally
+//	gosyncmodules.CheckPerm(configFile)
 	config, err := gosyncmodules.GetConfig(configFile)
 	gosyncmodules.CheckForError(err)
 
@@ -61,7 +73,6 @@ func main() {
 	gosyncmodules.CheckForError(err)
 	LDAPHost, err := LDAPGlobal.GetKey("LDAPHost")
 	gosyncmodules.CheckForError(err)
-	fmt.Println(LDAPHost)
 	LDAPPort, err := LDAPGlobal.GetKey("LDAPPort")
 	gosyncmodules.CheckForError(err)
 	LDAP_Port := LDAPPort.MustString("389")
@@ -104,17 +115,27 @@ func main() {
 	gosyncmodules.Info.Println("Starting script with", howtorun, "parameter")
 
 	if howtorun == "init" {
-		shutdownChannel := make(chan string, 2)
-		defer gosyncmodules.Info.Println()
+		shutdownChannel := make(chan string)
+		defer gosyncmodules.Info.Println("Closed blocking channel")
 		defer close(shutdownChannel)
 		gosyncmodules.Info.Println("Initializing bool channel and getting AD entries in goroutine")
 		gosyncmodules.Info.Println("Gathering results")
+
+		//Create channel to receive slice of struct
+		ADElementsChan := make(chan *[]gosyncmodules.ADElement)
+		gosyncmodules.Info.Println("Created channel of type", reflect.TypeOf(ADElementsChan))
+
 		go gosyncmodules.InitialrunAD(ADHost.String(), AD_Port, ADUsername.String(), ADPassword.String(),
-			ADBaseDN.String(), ADFilter.String(), ADAttribute, ADPage.MustInt(500), ADConnTimeOut.MustInt(10), shutdownChannel)
+			ADBaseDN.String(), ADFilter.String(), ADAttribute, ADPage.MustInt(500), ADConnTimeOut.MustInt(10), shutdownChannel, ADElementsChan)
+		ADElements := <- ADElementsChan		//Finished retriving AD results
+		gosyncmodules.Info.Println(<-shutdownChannel)	//Finished reading from Blocking channel
+
 		gosyncmodules.InitialrunLDAP(LDAPHost.String(), LDAP_Port, LDAPUsername.String(), LDAPPassword.String(),
-			LDAPBaseDN.String(), LDAPFilter.String(), LDAPAttribute, LDAPPage.MustInt(500), LDAPConnTimeOut.MustInt(10), shutdownChannel)
-		gosyncmodules.Info.Println(<-shutdownChannel)
-		gosyncmodules.Info.Println(<-shutdownChannel)
+			LDAPBaseDN.String(), LDAPFilter.String(), LDAPAttribute, LDAPPage.MustInt(500), LDAPConnTimeOut.MustInt(10), ADElements)
+
+		//gosyncmodules.Info.Println(<-shutdownChannel)
+		gosyncmodules.Info.Println("Received", reflect.TypeOf(ADElementsChan), "from child thread, and has ", len(*ADElements), "elements")
+		fmt.Println(len(*ADElements))
 
 	}else {
 		fmt.Println("No init")

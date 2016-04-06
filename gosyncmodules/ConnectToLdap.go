@@ -1,7 +1,7 @@
 package gosyncmodules
 
 import (
-	"github.com/go-ldap/ldap"
+	"gopkg.in/ldap.v2"
 	"fmt"
 	"time"
 )
@@ -15,6 +15,4 @@ func ConnectToLdap(ADHost, AD_Port string, ADUsername, ADPassword string, ADConn
 	err = l.Bind(ADUsername, ADPassword)
 	CheckForError(err)
 	return l
-
-
 }

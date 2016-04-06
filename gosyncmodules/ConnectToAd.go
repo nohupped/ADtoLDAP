@@ -1,7 +1,7 @@
 package gosyncmodules
 
 import (
-	"github.com/go-ldap/ldap"
+	"gopkg.in/ldap.v2"
 	"fmt"
 	"time"
 )

@@ -1,13 +1,13 @@
 package gosyncmodules
 
 import (
-	"github.com/go-ldap/ldap"
+	"gopkg.in/ldap.v2"
 	"fmt"
 )
 
-func GetFromAD(connect *ldap.Conn, ADBaseDN, ADFilter string, ADAttribute []string, ADPage uint32) []ADElement {
+func GetFromAD(connect *ldap.Conn, ADBaseDN, ADFilter string, ADAttribute []string, ADPage uint32) *[]ADElement {
 	//sizelimit in searchrequest is the limit, which throws an error when the number of results exceeds the limit.
-	searchRequest := ldap.NewSearchRequest(ADBaseDN, ldap.ScopeWholeSubtree, ldap.DerefAlways, 0, 0, false, ADFilter, ADAttribute, nil)
+	searchRequest := ldap.NewSearchRequest(ADBaseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 0, 0, false, ADFilter, ADAttribute, nil)
 	sr, err := connect.SearchWithPaging(searchRequest, ADPage)
 	CheckForError(err)
 	fmt.Println(len(sr.Entries))
@@ -20,5 +20,5 @@ func GetFromAD(connect *ldap.Conn, ADBaseDN, ADFilter string, ADAttribute []stri
 		}
 		ADElements = append(ADElements, *NewADEntity)
 	}
-	return ADElements
+	return &ADElements
 }
