@@ -3,7 +3,7 @@ package gosyncmodules
 import (
 	"gopkg.in/ldap.v2"
 	"fmt"
-	"strings"
+//	"strings"
 )
 
 func InitialPopulateToLdap(ADElements *[]ADElement, connectLDAP *ldap.Conn)  {
@@ -19,12 +19,25 @@ func InitialPopulateToLdap(ADElements *[]ADElement, connectLDAP *ldap.Conn)  {
 			for key, value := range maps {
 				//fmt.Println(value)
 				if key == "objectClass" {
-					for _, OClass := range value.([]string) {
+				/*	for _, OClass := range value.([]string) {
 						Add.Attribute(key, strings.Fields(OClass))
-					}
+					}*/
+
+					Add.Attribute(key, []string{"posixAccount", "top", "inetOrgPerson"})
+
 					continue
 				}
+				if key == "unixHomeDirectory" {
+					Add.Attribute("homeDirectory", value.([]string))
+					continue
+				}
+				if key == "primaryGroupID" {
+					Add.Attribute("gidNumber", value.([]string))
+					continue
+				}
+
 				Add.Attribute(key, value.([]string))
+
 
 
 
@@ -32,7 +45,9 @@ func InitialPopulateToLdap(ADElements *[]ADElement, connectLDAP *ldap.Conn)  {
 			}
 		}
 		Info.Println(Add)
+
 		err := connectLDAP.Add(Add)
+		Info.Println(err)
 		fmt.Println(err)
 
 
