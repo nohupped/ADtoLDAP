@@ -3,7 +3,7 @@ Gather AD Results based on attributes and sync to LDAP
 
 
 Sample ini file:
-
+```
 [ADServer]
 ADHost = <AD Host IP>
 ADPort = 389
@@ -40,5 +40,4 @@ groupObjectClass = top,posixGroup
 [Map]
 #format is to map ADAttribute = ldapattribute
 unixHomeDirectory = homeDirectory
-
-
+```
