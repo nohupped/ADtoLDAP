@@ -94,6 +94,15 @@ func main() {
 	for _, i := range LDAPAttr.Strings(",") {
 		LDAPAttribute = append(LDAPAttribute, i)
 	}
+
+	//AD to LDAP Mapping, replace and required variables
+	ReplaceAttributes, err := config.GetSection("Replace")
+	gosyncmodules.CheckForError(err)
+	MapAttributes, err := config.GetSection("Map")
+	gosyncmodules.CheckForError(err)
+	RequiredAttributes, err := config.GetSection("RequiredAttributes")
+	gosyncmodules.CheckForError(err)
+
 	//End of variable declaration
 
 	gosyncmodules.Info.Println("\n\tADHost: ", ADHost, "\n\tADPort: ", ADPort, "\n\tADPageSize: ",
@@ -131,7 +140,8 @@ func main() {
 		gosyncmodules.Info.Println(<-shutdownChannel)	//Finished reading from Blocking channel
 
 		gosyncmodules.InitialrunLDAP(LDAPHost.String(), LDAP_Port, LDAPUsername.String(), LDAPPassword.String(),
-			LDAPBaseDN.String(), LDAPFilter.String(), LDAPAttribute, LDAPPage.MustInt(500), LDAPConnTimeOut.MustInt(10), ADElements)
+			LDAPBaseDN.String(), LDAPFilter.String(), LDAPAttribute, LDAPPage.MustInt(500), LDAPConnTimeOut.MustInt(10), ADElements,
+			ReplaceAttributes, MapAttributes, RequiredAttributes)
 
 		//gosyncmodules.Info.Println(<-shutdownChannel)
 		gosyncmodules.Info.Println("Received", reflect.TypeOf(ADElementsChan), "from child thread, and has ", len(*ADElements), "elements")

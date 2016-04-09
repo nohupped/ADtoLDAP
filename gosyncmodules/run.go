@@ -3,6 +3,7 @@ package gosyncmodules
 import (
 	"reflect"
 	"fmt"
+	"gopkg.in/ini.v1"
 )
 
 func InitialrunAD(ADHost, AD_Port, ADUsername, ADPassword, ADBaseDN, ADFilter string, ADAttribute []string,
@@ -24,10 +25,10 @@ func InitialrunAD(ADHost, AD_Port, ADUsername, ADPassword, ADBaseDN, ADFilter st
 }
 
 func InitialrunLDAP(LDAPHost, LDAP_Port, LDAPUsername, LDAPPassword, LDAPBaseDN, LDAPFilter string, LDAPAttribute []string,
-	LDAPPage int, LDAPConnTimeout int, ADElements *[]ADElement)  {
+	LDAPPage int, LDAPConnTimeout int, ADElements *[]ADElement, ReplaceAttributes, MapAttributes, RequiredAttributes *ini.Section)  {
 	Info.Println("Received", len(*ADElements), "elements to populate ldap")
 	connectLDAP := ConnectToLdap(LDAPHost, LDAP_Port, LDAPUsername, LDAPPassword, LDAPConnTimeout)
-	InitialPopulateToLdap(ADElements, connectLDAP)
+	InitialPopulateToLdap(ADElements, connectLDAP, ReplaceAttributes, MapAttributes, RequiredAttributes)
 	defer Info.Println("closed")
 	defer connectLDAP.Close()
 	defer Info.Println("Closing connection")
