@@ -26,7 +26,6 @@ LDAPPort = 389
 LDAPPage = 500
 #LDAP Connection Timeout in seconds (Defaults to 10)
 LDAPConnTimeOut = 10
-#username = cn=linuxauth,cn=Users,dc=internal,dc=media,dc=net
 username = cn=someotheruser,dc=example,dc=com
 password = someotherpasswd
 basedn = ou=something,dc=example,dc=com
