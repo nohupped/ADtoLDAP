@@ -2,7 +2,7 @@ package gosyncmodules
 
 import (
 	"gopkg.in/ldap.v2"
-	"fmt"
+//	"fmt"
 	"gopkg.in/ini.v1"
 )
 
@@ -43,8 +43,8 @@ func InitialPopulateToLdap(ADElements *[]ADElement, connectLDAP *ldap.Conn, Repl
 				mappingvalue, ok := mapping[key]
 				if ok == true {
 					if mappingvalue == "memberUid"{
-						members := memberTomemberUid(&value)
-						Add.Attribute(mappingvalue, members)
+						//members := memberTomemberUid(&value)
+						Add.Attribute(mappingvalue, memberTomemberUid(&value))
 						continue
 					}
 					Add.Attribute(mappingvalue, value.([]string))

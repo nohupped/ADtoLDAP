@@ -144,7 +144,7 @@ func main() {
 
 		//gosyncmodules.Info.Println(<-shutdownChannel)
 		gosyncmodules.Info.Println("Received", reflect.TypeOf(ADElementsChan), "from child thread, and has ", len(*ADElements), "elements")
-		fmt.Println(len(*ADElements))
+		//fmt.Println(len(*ADElements))
 
 	}else {
 		fmt.Println("No init")

@@ -3,7 +3,7 @@ package gosyncmodules
 import (
 	"strings"
 	"regexp"
-	"fmt"
+//	"fmt"
 )
 
 func memberTomemberUid(member *interface{})  []string{
@@ -16,7 +16,7 @@ func memberTomemberUid(member *interface{})  []string{
 		memberlist = append(memberlist, memberclean)
 	}
 	Info.Println("retrieved members as ", memberlist)
-	fmt.Println(memberlist, "\n\n\n\n")
+	//fmt.Println(memberlist, "\n\n\n\n")
 	return memberlist
 
 }

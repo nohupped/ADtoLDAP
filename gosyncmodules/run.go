@@ -2,7 +2,7 @@ package gosyncmodules
 
 import (
 	"reflect"
-	"fmt"
+	//"fmt"
 	"gopkg.in/ini.v1"
 )
 
@@ -14,7 +14,7 @@ func InitialrunAD(ADHost, AD_Port, ADUsername, ADPassword, ADBaseDN, ADFilter st
 	defer connectAD.Close()
 	defer Info.Println("Closing connection")
 	ADElements := GetFromAD(connectAD, ADBaseDN, ADFilter, ADAttribute, uint32(ADPage))
-	fmt.Println(reflect.TypeOf(ADElements))
+	//fmt.Println(reflect.TypeOf(ADElements))
 	Info.Println(ADElements)
 	Info.Println("Writing results to ", reflect.TypeOf(ADElementsChan))
 	Info.Println("Length of ", reflect.TypeOf(ADElementsChan), "is", len(*ADElements))

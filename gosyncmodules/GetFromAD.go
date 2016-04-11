@@ -2,7 +2,7 @@ package gosyncmodules
 
 import (
 	"gopkg.in/ldap.v2"
-	"fmt"
+	//"fmt"
 )
 
 func GetFromAD(connect *ldap.Conn, ADBaseDN, ADFilter string, ADAttribute []string, ADPage uint32) *[]ADElement {
@@ -10,7 +10,7 @@ func GetFromAD(connect *ldap.Conn, ADBaseDN, ADFilter string, ADAttribute []stri
 	searchRequest := ldap.NewSearchRequest(ADBaseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 0, 0, false, ADFilter, ADAttribute, nil)
 	sr, err := connect.SearchWithPaging(searchRequest, ADPage)
 	CheckForError(err)
-	fmt.Println(len(sr.Entries))
+	//fmt.Println(len(sr.Entries))
 	ADElements := []ADElement{}
 	for _, entry := range sr.Entries{
 		NewADEntity := new(ADElement)
