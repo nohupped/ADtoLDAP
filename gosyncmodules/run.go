@@ -25,10 +25,10 @@ func InitialrunAD(ADHost, AD_Port, ADUsername, ADPassword, ADBaseDN, ADFilter st
 }
 
 func InitialrunLDAP(LDAPHost, LDAP_Port, LDAPUsername, LDAPPassword, LDAPBaseDN, LDAPFilter string, LDAPAttribute []string,
-	LDAPPage int, LDAPConnTimeout int, ADElements *[]ADElement, ReplaceAttributes, MapAttributes, RequiredAttributes *ini.Section)  {
+	LDAPPage int, LDAPConnTimeout int, ADElements *[]ADElement, ReplaceAttributes, MapAttributes *ini.Section)  {
 	Info.Println("Received", len(*ADElements), "elements to populate ldap")
 	connectLDAP := ConnectToLdap(LDAPHost, LDAP_Port, LDAPUsername, LDAPPassword, LDAPConnTimeout)
-	InitialPopulateToLdap(ADElements, connectLDAP, ReplaceAttributes, MapAttributes, RequiredAttributes)
+	InitialPopulateToLdap(ADElements, connectLDAP, ReplaceAttributes, MapAttributes)
 	defer Info.Println("closed")
 	defer connectLDAP.Close()
 	defer Info.Println("Closing connection")

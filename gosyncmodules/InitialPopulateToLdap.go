@@ -4,28 +4,20 @@ import (
 	"gopkg.in/ldap.v2"
 	"fmt"
 	"gopkg.in/ini.v1"
-//	"strings"
-/*	"bytes"
-	"encoding/gob"
-	"strings"
-	"strconv"*/
 )
 
-func InitialPopulateToLdap(ADElements *[]ADElement, connectLDAP *ldap.Conn, ReplaceAttributes, MapAttributes, RequiredAttributes *ini.Section)  {
+func InitialPopulateToLdap(ADElements *[]ADElement, connectLDAP *ldap.Conn, ReplaceAttributes, MapAttributes *ini.Section)  {
 
 	userObjectClass, err := ReplaceAttributes.GetKey("userObjectClass")
 	CheckForError(err)
 	groupObjectClass, err := ReplaceAttributes.GetKey("groupObjectClass")
 	CheckForError(err)
-	mapping := make(map[string] string)
+	mapping := make(map[string] string) //mapping of AD values to ldap values
 	for _, i := range MapAttributes.KeyStrings() {
 		tmpvar, err := MapAttributes.GetKey(i)
 		CheckForError(err)
 		mapping[i] = tmpvar.String()
-	}
-	Attributes, err := RequiredAttributes.GetKey("ADattr")
-	Info.Println(Attributes)
-	CheckForError(err)
+	} //keys = AD attributes, values = ldap values to which it would be mapped
 
 	Info.Println("Creating mappings for the following attributes,", mapping)
 	Info.Println("Userobjectclass of AD will be replaced with", userObjectClass)
@@ -33,46 +25,34 @@ func InitialPopulateToLdap(ADElements *[]ADElement, connectLDAP *ldap.Conn, Repl
 	for _, i := range *ADElements {
 		//fmt.Println(i.DN)
 		Add := ldap.NewAddRequest(i.DN)
-		//fmt.Println(i.DN)
-		//	if len(i.attributes) == 0 {
-		//		Warning.Println("Dropping", i.DN, "because of null attributes.")
-		//		continue
-		//	}
-		//var primaryGroupID int
-		//var objectSid []byte
 		for _, maps := range i.attributes {
 			for key, value := range maps {
 				//fmt.Println(value)
-		/*		if key == "primaryGroupID" {
-					tmpprimaryGroupID := strings.Join(value.([]string), "")
-					primaryGroupID, _ = strconv.Atoi(tmpprimaryGroupID)
-					continue
-				}
-				if key == "objectSid" {
-					var buf bytes.Buffer
-					enc := gob.NewEncoder(&buf)
-					err := enc.Encode(value)
-					fmt.Println(err)
-					objectSid = buf.Bytes()
-					continue
-				}*/
+
 				if key == "objectClass" {
-					//Add.Attribute(key, []string{"posixAccount", "top", "inetOrgPerson"})
-					Add.Attribute(key, userObjectClass.Strings(","))
-					continue
+					if StringInSlice("user", value.([]string)) {
+						//Add.Attribute(key, []string{"posixAccount", "top", "inetOrgPerson"})
+						Add.Attribute(key, userObjectClass.Strings(","))
+						continue
+					}
+					if StringInSlice("group", value.([]string)) {
+						Add.Attribute(key, groupObjectClass.Strings(","))
+						continue
+					}
 				}
 				mappingvalue, ok := mapping[key]
 				if ok == true {
+					if mappingvalue == "memberUid"{
+						members := memberTomemberUid(&value)
+						Add.Attribute(mappingvalue, members)
+						continue
+					}
 					Add.Attribute(mappingvalue, value.([]string))
 					continue
 				}
 
 				/*if key == "unixHomeDirectory" {
 					Add.Attribute("homeDirectory", value.([]string))
-					continue
-				}
-				if key == "primaryGroupID" {
-					Add.Attribute("gidNumber", value.([]string))
 					continue
 				}*/
 
@@ -85,11 +65,10 @@ func InitialPopulateToLdap(ADElements *[]ADElement, connectLDAP *ldap.Conn, Repl
 			}
 		}
 		Info.Println(Add)
-		//GetPrimaryGroup(primaryGroupID, objectSid)
 		err := connectLDAP.Add(Add)
-		fmt.Println(Add)
-		Info.Println(err)
-		fmt.Println(err)
+		//fmt.Println(Add)
+		Error.Println(err)
+		//fmt.Println(err)
 
 
 	}

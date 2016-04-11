@@ -100,8 +100,7 @@ func main() {
 	gosyncmodules.CheckForError(err)
 	MapAttributes, err := config.GetSection("Map")
 	gosyncmodules.CheckForError(err)
-	RequiredAttributes, err := config.GetSection("RequiredAttributes")
-	gosyncmodules.CheckForError(err)
+
 
 	//End of variable declaration
 
@@ -141,7 +140,7 @@ func main() {
 
 		gosyncmodules.InitialrunLDAP(LDAPHost.String(), LDAP_Port, LDAPUsername.String(), LDAPPassword.String(),
 			LDAPBaseDN.String(), LDAPFilter.String(), LDAPAttribute, LDAPPage.MustInt(500), LDAPConnTimeOut.MustInt(10), ADElements,
-			ReplaceAttributes, MapAttributes, RequiredAttributes)
+			ReplaceAttributes, MapAttributes)
 
 		//gosyncmodules.Info.Println(<-shutdownChannel)
 		gosyncmodules.Info.Println("Received", reflect.TypeOf(ADElementsChan), "from child thread, and has ", len(*ADElements), "elements")
