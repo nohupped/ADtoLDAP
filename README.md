@@ -5,31 +5,31 @@ Gather AD Results based on attributes and sync to LDAP
 Sample ini file:
 ```
 [ADServer]
-ADHost = <AD Host IP>
+ADHost = <AD IP>
 ADPort = 389
 #Page the result size to prevent possible OOM error and crash
 ADPage = 500
 #AD Connection Timeout in seconds (Defaults to 10)
 ADConnTimeOut = 10
-username = cn=linuxuser,cn=Users,dc=example,dc=com
+username = cn=SomeUser,dc=example,dc=com
 password = somepasswd
-basedn = ou=something,dc=example,dc=com
+basedn = ou=someou,dc=example,dc=com
 #Attributes required to be pulled
-attr = comment, givenName, unixHomeDirectory, sn, loginShell, memberOf, dn, o, uid, objectclass, cn, displayName, cn, uidNumber, gidNumber
+attr = comment, givenName, unixHomeDirectory, sn, loginShell, memberOf, dn, o, uid, objectclass, cn, displayName, cn, uidNumber, gidNumber, member
 #ldap filter
 filter = (cn=*)
 
 [LDAPServer]
-LDAPHost = <ldap server ip>
+LDAPHost = <OpenLdapServerIP>
 LDAPPort = 389
 #Page LDAP result
 LDAPPage = 500
 #LDAP Connection Timeout in seconds (Defaults to 10)
 LDAPConnTimeOut = 10
-username = cn=someotheruser,dc=example,dc=com
-password = someotherpasswd
-basedn = ou=something,dc=example,dc=com
-attr = distinguishedName, comment, givenName, primaryGroupID, unixHomeDirectory, sn, loginShell, memberOf, dn, o, uid, objectclass, cn, displayName, cn, uidNumber, gidNumber
+username = cn=somelinuxuser,dc=example,dc=com
+password = someldappasswd
+basedn = ou=someotherbasedn,dc=example,dc=com
+attr = "distinguishedName, comment, givenName, primaryGroupID, unixHomeDirectory, sn, loginShell, memberOf, dn, o, uid, objectclass, cn, displayName, cn, uidNumber, gidNumber"
 filter = (cn=*)
 
 
@@ -37,6 +37,8 @@ filter = (cn=*)
 userObjectClass = posixAccount,top,inetOrgPerson
 groupObjectClass = top,posixGroup
 [Map]
-#format is to map ADAttribute = ldapattribute
+#ADAttribute = ldapattribute
 unixHomeDirectory = homeDirectory
+#specify member mapping if you are selecting member attribute from *attr above
+member = memberUid
 ```
