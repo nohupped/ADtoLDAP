@@ -1,6 +1,13 @@
 # ADtoLDAP
 Gather AD Results based on attributes and sync to LDAP
 
+Enable `memberOf` attribute in ldap, to accomodate AD field, by using the 3 ldif files included in the repo.
+```
+ldapadd -Q -Y EXTERNAL -H ldapi:/// -f memberof_load_configure.ldif 
+ldapmodify -Q -Y EXTERNAL -H ldapi:/// -f 1refint.ldif
+ldapadd -Q -Y EXTERNAL -H ldapi:/// -f 2refint.ldif
+```
+
 
 Sample ini file:
 ```
