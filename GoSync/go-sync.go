@@ -8,6 +8,8 @@ import (
 	"gosyncmodules"
 	"reflect"
 	"os/signal"
+	"time"
+	"gopkg.in/ldap.v2"
 )
 
 func init()  {
@@ -38,7 +40,7 @@ func main() {
 	defer loggerMain.Close()
 	configFile := "/etc/ldapsync.ini"
 //TODO Remove the commented permcheck finally
-//	gosyncmodules.CheckPerm(configFile)
+	gosyncmodules.CheckPerm(configFile)
 	config, err := gosyncmodules.GetConfig(configFile)
 	gosyncmodules.CheckForError(err)
 
@@ -116,7 +118,8 @@ func main() {
 	} else {
 		fmt.Println("Usage:\n\t", os.Args[0],
 			"--init to do an init run to freshly populate ldap",
-			"from AD. Caution, this can overwrite data. \n\t", os.Args[0],
+			"from AD. Caution, if there is data already populated in ldap,\n\t\t",
+			"you may have to wipe it clean before doing init. \n\t", os.Args[0],
 			"--sync to keep monitoring the changes and sync")
 		os.Exit(1)
 	}
@@ -130,7 +133,7 @@ func main() {
 		gosyncmodules.Info.Println("Gathering results")
 
 		//Create channel to receive slice of struct
-		ADElementsChan := make(chan *[]gosyncmodules.ADElement)
+		ADElementsChan := make(chan *[]gosyncmodules.LDAPElement)
 		gosyncmodules.Info.Println("Created channel of type", reflect.TypeOf(ADElementsChan))
 
 		go gosyncmodules.InitialrunAD(ADHost.String(), AD_Port, ADUsername.String(), ADPassword.String(),
@@ -147,6 +150,60 @@ func main() {
 		//fmt.Println(len(*ADElements))
 
 	}else {
-		fmt.Println("No init")
+		gosyncmodules.Info.Println("Initiating sync")
+		for ; ;  {
+
+			shutdownChannel := make(chan string)
+			defer gosyncmodules.Info.Println("Closed blocking channel")
+			defer close(shutdownChannel)
+			gosyncmodules.Info.Println("Initializing bool channel and getting AD entries in goroutine")
+			gosyncmodules.Info.Println("Gathering results")
+
+			//Create channel to receive slice of struct
+			ADElementsChan := make(chan *[]gosyncmodules.LDAPElement)
+			defer gosyncmodules.Info.Println("Closing channel ADElementsChan")
+			defer close(ADElementsChan)
+			gosyncmodules.Info.Println("Created channel of type", reflect.TypeOf(ADElementsChan))
+			LDAPElementsChan := make(chan *[]gosyncmodules.LDAPElement)
+			gosyncmodules.Info.Println("Created channel of type", reflect.TypeOf(LDAPElementsChan))
+			LdapConnectionChan := make(chan *ldap.Conn)
+			gosyncmodules.Info.Println("Created channel of type", reflect.TypeOf(LdapConnectionChan))
+
+			go gosyncmodules.SyncrunLDAP(LDAPHost.String(), LDAP_Port, LDAPUsername.String(), LDAPPassword.String(),
+					LDAPBaseDN.String(), LDAPFilter.String(), LDAPAttribute, LDAPPage.MustInt(500),
+					LDAPConnTimeOut.MustInt(10), shutdownChannel, LDAPElementsChan, LdapConnectionChan,
+					ReplaceAttributes, MapAttributes)
+			go gosyncmodules.InitialrunAD(ADHost.String(), AD_Port, ADUsername.String(), ADPassword.String(),
+				ADBaseDN.String(), ADFilter.String(), ADAttribute, ADPage.MustInt(500),
+				ADConnTimeOut.MustInt(10), shutdownChannel, ADElementsChan)
+			ADElements := <- ADElementsChan
+			LDAPElements := <- LDAPElementsChan
+			LDAPConnection := <- LdapConnectionChan
+			gosyncmodules.Info.Println(<-shutdownChannel)
+			gosyncmodules.Info.Println(<-shutdownChannel)
+
+			ADElementsConverted := gosyncmodules.InitialPopulateToLdap(ADElements, LDAPConnection, ReplaceAttributes, MapAttributes, true)
+			LDAPElementsConverted := gosyncmodules.InitialPopulateToLdap(LDAPElements, LDAPConnection, ReplaceAttributes, MapAttributes, true)
+			//fmt.Println(LDAPElementsConverted)
+			//fmt.Println(reflect.DeepEqual(ADElementsConverted, LDAPElementsConverted))
+
+		//	ADElementsConverted = append(ADElementsConverted, LDAPElementsConverted...)
+
+		//	fmt.Println(len(ADElementsConverted))
+
+			for _, i := range ADElementsConverted {
+				if gosyncmodules.IfDuplicateExists(i, LDAPElementsConverted) {
+					fmt.Println(i)
+				}
+			}
+
+
+
+
+			//Sleep the daemon
+			fmt.Println("\n\n")
+			time.Sleep(time.Second * 1)
+
+		}
 	}
 }

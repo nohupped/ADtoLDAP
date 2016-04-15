@@ -7,7 +7,7 @@ import (
 )
 
 func memberTomemberUid(member *interface{})  []string{
-	Info.Println("Found member attribute ", member, "converting it to memberUid")
+	Info.Println("Found member attribute ", *member, "converting it to memberUid")
 	matchCN := regexp.MustCompile("CN=")
 	memberlist := make([]string, 0)
 	for _, members := range (*member).([]string) {

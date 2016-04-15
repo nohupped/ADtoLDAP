@@ -4,10 +4,12 @@ import (
 	"reflect"
 	//"fmt"
 	"gopkg.in/ini.v1"
+	"gopkg.in/ldap.v2"
 )
 
 func InitialrunAD(ADHost, AD_Port, ADUsername, ADPassword, ADBaseDN, ADFilter string, ADAttribute []string,
-	ADPage int, ADConnTimeout int, shutdownChannel chan string, ADElementsChan chan *[]ADElement)  {
+	ADPage int, ADConnTimeout int, shutdownChannel chan string, ADElementsChan chan *[]LDAPElement)  {
+	Info.Println("Connecting to AD", ADHost)
 	connectAD := ConnectToAD(ADHost, AD_Port, ADUsername, ADPassword, ADConnTimeout)
 	defer func() {shutdownChannel <- "Done from func InitialrunAD"}()
 	defer Info.Println("closed")
@@ -25,13 +27,30 @@ func InitialrunAD(ADHost, AD_Port, ADUsername, ADPassword, ADBaseDN, ADFilter st
 }
 
 func InitialrunLDAP(LDAPHost, LDAP_Port, LDAPUsername, LDAPPassword, LDAPBaseDN, LDAPFilter string, LDAPAttribute []string,
-	LDAPPage int, LDAPConnTimeout int, ADElements *[]ADElement, ReplaceAttributes, MapAttributes *ini.Section)  {
+	LDAPPage int, LDAPConnTimeout int, ADElements *[]LDAPElement, ReplaceAttributes, MapAttributes *ini.Section)  {
 	Info.Println("Received", len(*ADElements), "elements to populate ldap")
 	connectLDAP := ConnectToLdap(LDAPHost, LDAP_Port, LDAPUsername, LDAPPassword, LDAPConnTimeout)
-	InitialPopulateToLdap(ADElements, connectLDAP, ReplaceAttributes, MapAttributes)
+	InitialPopulateToLdap(ADElements, connectLDAP, ReplaceAttributes, MapAttributes, false)
 	defer Info.Println("closed")
 	defer connectLDAP.Close()
 	defer Info.Println("Closing connection")
 	Info.Println("End of LDAP")
+
+}
+
+func SyncrunLDAP(LDAPHost, LDAP_Port, LDAPUsername, LDAPPassword, LDAPBaseDN, LDAPFilter string, LDAPAttribute []string,
+			LDAPPage int, LDAPConnTimeout int, shutdownChannel chan string,
+			LDAPElementsChan chan *[]LDAPElement, LdapConnectionChan chan *ldap.Conn,
+			ReplaceAttributes, MapAttributes *ini.Section)  {
+	Info.Println("Connecting to LDAP", LDAPHost)
+	connectLDAP := ConnectToLdap(LDAPHost, LDAP_Port, LDAPUsername, LDAPPassword, LDAPConnTimeout)
+	defer func() {shutdownChannel <- "Done from func syncrunLDAP"}()
+	//fmt.Println("Connected", connectLDAP)
+	LDAPElements := GetFromLDAP(connectLDAP, LDAPBaseDN, LDAPFilter, LDAPAttribute, uint32(LDAPPage))
+	Info.Println(LDAPElements)
+	Info.Println("Length of ", reflect.TypeOf(LDAPElementsChan), "is", len(*LDAPElements))
+
+	LDAPElementsChan <- LDAPElements
+	LdapConnectionChan <- connectLDAP
 
 }

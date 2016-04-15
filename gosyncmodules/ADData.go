@@ -3,7 +3,7 @@ package gosyncmodules
 
 type keyvalue map[string]interface{}
 
-type ADElement struct {
+type LDAPElement struct {
 	DN string
 	attributes []keyvalue
 }

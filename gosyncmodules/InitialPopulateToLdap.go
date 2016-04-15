@@ -6,8 +6,9 @@ import (
 	"gopkg.in/ini.v1"
 )
 
-func InitialPopulateToLdap(ADElements *[]ADElement, connectLDAP *ldap.Conn, ReplaceAttributes, MapAttributes *ini.Section)  {
-
+func InitialPopulateToLdap(ADElements *[]LDAPElement, connectLDAP *ldap.Conn,
+			ReplaceAttributes, MapAttributes *ini.Section, ReturnData bool) []*ldap.AddRequest {
+	var ReturnConvertedData []*ldap.AddRequest
 	userObjectClass, err := ReplaceAttributes.GetKey("userObjectClass")
 	CheckForError(err)
 	groupObjectClass, err := ReplaceAttributes.GetKey("groupObjectClass")
@@ -27,7 +28,6 @@ func InitialPopulateToLdap(ADElements *[]ADElement, connectLDAP *ldap.Conn, Repl
 		Add := ldap.NewAddRequest(i.DN)
 		for _, maps := range i.attributes {
 			for key, value := range maps {
-				//fmt.Println(value)
 
 				if key == "objectClass" {
 					if StringInSlice("user", value.([]string)) {
@@ -51,10 +51,6 @@ func InitialPopulateToLdap(ADElements *[]ADElement, connectLDAP *ldap.Conn, Repl
 					continue
 				}
 
-				/*if key == "unixHomeDirectory" {
-					Add.Attribute("homeDirectory", value.([]string))
-					continue
-				}*/
 
 				Add.Attribute(key, value.([]string))
 
@@ -65,11 +61,16 @@ func InitialPopulateToLdap(ADElements *[]ADElement, connectLDAP *ldap.Conn, Repl
 			}
 		}
 		Info.Println(Add)
-		err := connectLDAP.Add(Add)
+		if ReturnData == false {
+			err := connectLDAP.Add(Add)
+			Error.Println(err)
+		} else {
+			ReturnConvertedData = append(ReturnConvertedData, Add)
+		}
 		//fmt.Println(Add)
-		Error.Println(err)
+
 		//fmt.Println(err)
 
-
 	}
+	return ReturnConvertedData
 }
