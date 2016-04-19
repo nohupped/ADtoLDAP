@@ -187,16 +187,20 @@ func main() {
 			//fmt.Println(LDAPElementsConverted)
 			//fmt.Println(reflect.DeepEqual(ADElementsConverted, LDAPElementsConverted))
 
-		//	ADElementsConverted = append(ADElementsConverted, LDAPElementsConverted...)
 
-		//	fmt.Println(len(ADElementsConverted))
+			gosyncmodules.ConvertRealmToLower(ADElementsConverted)
 
-			for _, i := range ADElementsConverted {
-				if gosyncmodules.IfDuplicateExists(i, LDAPElementsConverted) {
+		//	fmt.Println(ADElementsConverted)
+					for _, i := range ADElementsConverted {
+				if gosyncmodules.IfDNExists(i, LDAPElementsConverted) {
+					//fmt.Println(i, "exists, will check attributes.")
+					continue
+				} else {
 					fmt.Println(i)
+					err := LDAPConnection.Add(i)
+					fmt.Println(err)
 				}
 			}
-
 
 
 

@@ -2,16 +2,16 @@ package gosyncmodules
 
 import (
 	"gopkg.in/ldap.v2"
-	"fmt"
+	//"fmt"
 )
 
-func IfDuplicateExists(checkfor *ldap.AddRequest , checkin []*ldap.AddRequest ) bool {
-
+func IfDNExists(checkfor *ldap.AddRequest , checkin []*ldap.AddRequest ) bool {
 	for _, i := range checkin {
-		fmt.Println("Checking if ", *checkfor, "is equal to ", *i)
-		if i == checkfor {
+	//	fmt.Println("Checking", checkfor.GetDN(), "equals", i.GetDN())
+		if checkfor.GetDN() == i.GetDN() {
 			return true
 		}
+
 	}
 	return false
 }
