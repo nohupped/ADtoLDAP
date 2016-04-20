@@ -166,6 +166,8 @@ func main() {
 		gosyncmodules.Info.Println("Created channel of type", reflect.TypeOf(LDAPElementsChan))
 		LdapConnectionChan := make(chan *ldap.Conn)
 		gosyncmodules.Info.Println("Created channel of type", reflect.TypeOf(LdapConnectionChan))
+		AddChan := make(chan gosyncmodules.Action)
+		gosyncmodules.Info.Println("Created", reflect.TypeOf(AddChan))
 
 		//Starting infinite loop
 		for ; ;  {
@@ -190,8 +192,43 @@ func main() {
 
 
 			gosyncmodules.ConvertRealmToLower(ADElementsConverted)
-
+			gosyncmodules.Info.Println("Converted AD Realms to lowercase")
 			//Todo Create two concurrent threads that will compare the two arrays and create two lists for add and delete requests
+
+
+		//	DelChan := make(chan gosyncmodules.Action)
+		//	ModChan := make(chan gosyncmodules.Action)
+
+			go gosyncmodules.FindAdds(&ADElementsConverted, &LDAPElementsConverted, AddChan, shutdownChannel)
+			for ; ; {
+				Add, ok := <- AddChan
+				if ok == true {
+					fmt.Println(ok, "printed")
+					for  k, v := range Add {
+						fmt.Println(k, "::", v)
+					}
+
+				} else {
+					gosyncmodules.Info.Println(<-shutdownChannel)
+					break
+				}
+					//fmt.Println(ok)
+					//for k, v := range Add {
+					//	fmt.Println(k, ":", v)
+					//}
+
+
+
+			}
+
+
+
+			//For FindAdds
+
+			fmt.Println("AddRequests read")
+
+			//Below commented blocks will be removed later
+			/*
 
 			for _, i := range ADElementsConverted {
 				if gosyncmodules.IfDNExists(i, LDAPElementsConverted) {
@@ -203,7 +240,7 @@ func main() {
 					gosyncmodules.Info.Println(err)
 				}
 			}
-
+			*/
 
 
 			//Sleep the daemon
