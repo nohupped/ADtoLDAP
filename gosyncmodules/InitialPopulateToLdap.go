@@ -1,7 +1,7 @@
 package gosyncmodules
 
 import (
-	"gopkg.in/ldap.v2"
+	"github.com/nohupped/ldap" //using a forked version that includes custom methods to retrieve and edit *AddRequest struct.
 //	"fmt"
 	"gopkg.in/ini.v1"
 )

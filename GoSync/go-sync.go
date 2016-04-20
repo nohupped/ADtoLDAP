@@ -9,7 +9,7 @@ import (
 	"reflect"
 	"os/signal"
 	"time"
-	"gopkg.in/ldap.v2"
+	"github.com/nohupped/ldap" //using a forked version that includes custom methods to retrieve and edit *AddRequest struct.
 )
 
 func init()  {
@@ -151,23 +151,24 @@ func main() {
 
 	}else {
 		gosyncmodules.Info.Println("Initiating sync")
+		shutdownChannel := make(chan string)
+		defer gosyncmodules.Info.Println("Closed blocking channel")
+		defer close(shutdownChannel)
+		gosyncmodules.Info.Println("Initializing bool channel and getting AD entries in goroutine")
+		gosyncmodules.Info.Println("Gathering results")
+
+		//Create channel to receive slice of struct
+		ADElementsChan := make(chan *[]gosyncmodules.LDAPElement)
+		defer gosyncmodules.Info.Println("Closing channel ADElementsChan")
+		defer close(ADElementsChan)
+		gosyncmodules.Info.Println("Created channel of type", reflect.TypeOf(ADElementsChan))
+		LDAPElementsChan := make(chan *[]gosyncmodules.LDAPElement)
+		gosyncmodules.Info.Println("Created channel of type", reflect.TypeOf(LDAPElementsChan))
+		LdapConnectionChan := make(chan *ldap.Conn)
+		gosyncmodules.Info.Println("Created channel of type", reflect.TypeOf(LdapConnectionChan))
+
+		//Starting infinite loop
 		for ; ;  {
-
-			shutdownChannel := make(chan string)
-			defer gosyncmodules.Info.Println("Closed blocking channel")
-			defer close(shutdownChannel)
-			gosyncmodules.Info.Println("Initializing bool channel and getting AD entries in goroutine")
-			gosyncmodules.Info.Println("Gathering results")
-
-			//Create channel to receive slice of struct
-			ADElementsChan := make(chan *[]gosyncmodules.LDAPElement)
-			defer gosyncmodules.Info.Println("Closing channel ADElementsChan")
-			defer close(ADElementsChan)
-			gosyncmodules.Info.Println("Created channel of type", reflect.TypeOf(ADElementsChan))
-			LDAPElementsChan := make(chan *[]gosyncmodules.LDAPElement)
-			gosyncmodules.Info.Println("Created channel of type", reflect.TypeOf(LDAPElementsChan))
-			LdapConnectionChan := make(chan *ldap.Conn)
-			gosyncmodules.Info.Println("Created channel of type", reflect.TypeOf(LdapConnectionChan))
 
 			go gosyncmodules.SyncrunLDAP(LDAPHost.String(), LDAP_Port, LDAPUsername.String(), LDAPPassword.String(),
 					LDAPBaseDN.String(), LDAPFilter.String(), LDAPAttribute, LDAPPage.MustInt(500),
@@ -190,15 +191,16 @@ func main() {
 
 			gosyncmodules.ConvertRealmToLower(ADElementsConverted)
 
-		//	fmt.Println(ADElementsConverted)
-					for _, i := range ADElementsConverted {
+			//Todo Create two concurrent threads that will compare the two arrays and create two lists for add and delete requests
+
+			for _, i := range ADElementsConverted {
 				if gosyncmodules.IfDNExists(i, LDAPElementsConverted) {
-					//fmt.Println(i, "exists, will check attributes.")
+					gosyncmodules.Info.Println(i, "exists, checking for change in attributes.")
 					continue
 				} else {
-					fmt.Println(i)
+					gosyncmodules.Info.Println(i)
 					err := LDAPConnection.Add(i)
-					fmt.Println(err)
+					gosyncmodules.Info.Println(err)
 				}
 			}
 
