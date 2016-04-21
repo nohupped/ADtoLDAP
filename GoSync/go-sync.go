@@ -230,15 +230,15 @@ func main() {
 
 				}
 				if counter == 2{
-					fmt.Println("Counter reached")
+					gosyncmodules.Info.Println("Counter reached")
 					break
 				}
 
 			}
 
 			//Sleep the daemon
-			fmt.Println("\n\n")
 			time.Sleep(time.Second * 1)
+			gosyncmodules.Info.Println("Iterating again...")
 
 		}
 	}

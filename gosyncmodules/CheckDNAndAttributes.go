@@ -3,18 +3,27 @@ package gosyncmodules
 import (
 	"github.com/nohupped/ldap" //using a forked version that includes custom methods to retrieve and edit *AddRequest struct.
 	//"fmt"
+	"fmt"
 )
 
-func IfDNExists(checkfor *ldap.AddRequest , checkin []*ldap.AddRequest ) bool {
+func IfDNExists(checkfor *ldap.AddRequest , checkin []*ldap.AddRequest ) (bool, *ldap.AddRequest) {
 	for _, i := range checkin {
 		if checkfor.DN == i.DN {
-			return true
+			return true, i
 		}
 
 	}
-	return false
+	return false, nil
 }
 
-/*func (attributes *ldap.Attribute)()  {
-	
-}*/
+func CheckAttributes(LdapEntry, ADEntry *ldap.AddRequest)  {
+
+	for _, adEntries := range ADEntry.Attributes {
+		fmt.Println(adEntries.AttrType, "::", adEntries.AttrVals)
+	}
+
+
+}
+
+
+

@@ -12,8 +12,10 @@ func FindAdds(ADElementsConverted, LDAPElementsConverted *[]*ldap.AddRequest, Ad
 	defer close(AddChan)
 	defer Info.Println("About to close blocking channel from FindAdds")
 	for _, i := range *ADElementsConverted {
-		if IfDNExists(i, *LDAPElementsConverted) {
+		Exists, LDAPEntry := IfDNExists(i, *LDAPElementsConverted)
+		if Exists {
 			Info.Println(i, "exists, checking for change in attributes.")
+			CheckAttributes(LDAPEntry, i)
 			continue
 		} else {
 			//err := LDAPConnection.Add(i)
@@ -30,7 +32,8 @@ func FindDels(LDAPElementsConverted, ADElementsConverted *[]*ldap.AddRequest, De
 	defer close(DelChan)
 	defer Info.Println("About to close blocking channel from FindAdds")
 	for _, i := range *LDAPElementsConverted {
-		if IfDNExists(i, *ADElementsConverted) {
+		Exists, _ := IfDNExists(i, *ADElementsConverted)
+		if Exists {
 			continue
 		} else {
 			Info.Println(i.DN, "Doesn't exist in AD, will be set to delete.")
@@ -41,4 +44,3 @@ func FindDels(LDAPElementsConverted, ADElementsConverted *[]*ldap.AddRequest, De
 	}
 }
 
-//func FindChangeInAttributes
