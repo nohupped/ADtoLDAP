@@ -17,7 +17,7 @@ func InitialrunAD(ADHost, AD_Port, ADUsername, ADPassword, ADBaseDN, ADFilter st
 	defer Info.Println("Closing connection")
 	ADElements := GetFromAD(connectAD, ADBaseDN, ADFilter, ADAttribute, uint32(ADPage))
 	//fmt.Println(reflect.TypeOf(ADElements))
-	Info.Println(ADElements)
+//	Info.Println(ADElements)
 	Info.Println("Writing results to ", reflect.TypeOf(ADElementsChan))
 	Info.Println("Length of ", reflect.TypeOf(ADElementsChan), "is", len(*ADElements))
 	ADElementsChan <- ADElements
@@ -45,9 +45,9 @@ func SyncrunLDAP(LDAPHost, LDAP_Port, LDAPUsername, LDAPPassword, LDAPBaseDN, LD
 	Info.Println("Connecting to LDAP", LDAPHost)
 	connectLDAP := ConnectToLdap(LDAPHost, LDAP_Port, LDAPUsername, LDAPPassword, LDAPConnTimeout)
 	defer func() {shutdownChannel <- "Done from func syncrunLDAP"}()
-	//fmt.Println("Connected", connectLDAP)
 	LDAPElements := GetFromLDAP(connectLDAP, LDAPBaseDN, LDAPFilter, LDAPAttribute, uint32(LDAPPage))
-	Info.Println(LDAPElements)
+	//Comment below to log ldapelements
+	//Info.Println(LDAPElements)
 	Info.Println("Length of ", reflect.TypeOf(LDAPElementsChan), "is", len(*LDAPElements))
 
 	LDAPElementsChan <- LDAPElements

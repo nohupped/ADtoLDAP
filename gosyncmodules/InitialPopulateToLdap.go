@@ -60,7 +60,7 @@ func InitialPopulateToLdap(ADElements *[]LDAPElement, connectLDAP *ldap.Conn,
 
 			}
 		}
-		Info.Println(Add)
+//		Info.Println(Add)
 		if ReturnData == false {
 			err := connectLDAP.Add(Add)
 			Error.Println(err)

@@ -8,8 +8,8 @@ import (
 	"gosyncmodules"
 	"reflect"
 	"os/signal"
-	"time"
 	"github.com/nohupped/ldap" //using a forked version that includes custom methods to retrieve and edit *AddRequest struct.
+	"time"
 )
 
 func init()  {
@@ -166,8 +166,6 @@ func main() {
 		gosyncmodules.Info.Println("Created channel of type", reflect.TypeOf(LDAPElementsChan))
 		LdapConnectionChan := make(chan *ldap.Conn)
 		gosyncmodules.Info.Println("Created channel of type", reflect.TypeOf(LdapConnectionChan))
-		AddChan := make(chan gosyncmodules.Action)
-		gosyncmodules.Info.Println("Created", reflect.TypeOf(AddChan))
 
 		//Starting infinite loop
 		for ; ;  {
@@ -193,55 +191,50 @@ func main() {
 
 			gosyncmodules.ConvertRealmToLower(ADElementsConverted)
 			gosyncmodules.Info.Println("Converted AD Realms to lowercase")
-			//Todo Create two concurrent threads that will compare the two arrays and create two lists for add and delete requests
 
+			AddChan := make(chan gosyncmodules.Action)
+			gosyncmodules.Info.Println("Created", reflect.TypeOf(AddChan))
+			DelChan := make(chan gosyncmodules.Action)
+			gosyncmodules.Info.Println("Created", reflect.TypeOf(DelChan))
+			shutdownAddChan := make(chan string)
+			shutdownDelChan := make(chan string)
 
-		//	DelChan := make(chan gosyncmodules.Action)
-		//	ModChan := make(chan gosyncmodules.Action)
-
-			go gosyncmodules.FindAdds(&ADElementsConverted, &LDAPElementsConverted, AddChan, shutdownChannel)
+			go gosyncmodules.FindAdds(&ADElementsConverted, &LDAPElementsConverted, AddChan, shutdownAddChan)
+			go gosyncmodules.FindDels(&LDAPElementsConverted, &ADElementsConverted, DelChan, shutdownDelChan)
+			counter := 0
 			for ; ; {
-				Add, ok := <- AddChan
-				if ok == true {
-					fmt.Println(ok, "printed")
-					for  k, v := range Add {
-						fmt.Println(k, "::", v)
+				select {
+				case Add := <- AddChan:
+					for k, v := range Add {
+						gosyncmodules.Info.Println(k, ":", v)
+						err := LDAPConnection.Add(v)
+						if err != nil {
+							gosyncmodules.Error.Println(err)
+						}
 					}
+				case Del := <- DelChan:
+					for k, v := range Del  {
+						gosyncmodules.Info.Println(k, ":", v)
+						delete := ldap.NewDelRequest(v.DN, []ldap.Control{})
+						err := LDAPConnection.Del(delete)
+						if err != nil {
+							gosyncmodules.Error.Println(err)
+						}
+					}
+				case shutdownAdd := <- shutdownAddChan:
+					gosyncmodules.Info.Println(shutdownAdd)
+					counter += 1
+				case shutdownDel := <- shutdownDelChan:
+					gosyncmodules.Info.Println(shutdownDel)
+					counter += 1
 
-				} else {
-					gosyncmodules.Info.Println(<-shutdownChannel)
+				}
+				if counter == 2{
+					fmt.Println("Counter reached")
 					break
 				}
-					//fmt.Println(ok)
-					//for k, v := range Add {
-					//	fmt.Println(k, ":", v)
-					//}
-
-
 
 			}
-
-
-
-			//For FindAdds
-
-			fmt.Println("AddRequests read")
-
-			//Below commented blocks will be removed later
-			/*
-
-			for _, i := range ADElementsConverted {
-				if gosyncmodules.IfDNExists(i, LDAPElementsConverted) {
-					gosyncmodules.Info.Println(i, "exists, checking for change in attributes.")
-					continue
-				} else {
-					gosyncmodules.Info.Println(i)
-					err := LDAPConnection.Add(i)
-					gosyncmodules.Info.Println(err)
-				}
-			}
-			*/
-
 
 			//Sleep the daemon
 			fmt.Println("\n\n")
