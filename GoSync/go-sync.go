@@ -199,7 +199,7 @@ func main() {
 			shutdownAddChan := make(chan string)
 			shutdownDelChan := make(chan string)
 
-			go gosyncmodules.FindAdds(&ADElementsConverted, &LDAPElementsConverted, AddChan, shutdownAddChan)
+			go gosyncmodules.FindAdds(&ADElementsConverted, &LDAPElementsConverted, LDAPConnection, AddChan, shutdownAddChan)
 			go gosyncmodules.FindDels(&LDAPElementsConverted, &ADElementsConverted, DelChan, shutdownDelChan)
 			counter := 0
 			for ; ; {

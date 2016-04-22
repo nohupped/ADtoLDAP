@@ -6,7 +6,7 @@ import (
 
 type Action map[string]*ldap.AddRequest
 
-func FindAdds(ADElementsConverted, LDAPElementsConverted *[]*ldap.AddRequest, AddChan chan Action, shutdownAddChan chan string){
+func FindAdds(ADElementsConverted, LDAPElementsConverted *[]*ldap.AddRequest, LdapConnection *ldap.Conn, AddChan chan Action, shutdownAddChan chan string){
 	Info.Println("Starting FindAdds")
 	defer func() {shutdownAddChan <- "Done from func FindAdds"}()
 	defer close(AddChan)
@@ -15,7 +15,7 @@ func FindAdds(ADElementsConverted, LDAPElementsConverted *[]*ldap.AddRequest, Ad
 		Exists, LDAPEntry := IfDNExists(i, *LDAPElementsConverted)
 		if Exists {
 			Info.Println(i, "exists, checking for change in attributes.")
-			CheckAttributes(LDAPEntry, i)
+			CheckAttributes(LdapConnection, LDAPEntry, i)
 			continue
 		} else {
 			//err := LDAPConnection.Add(i)

@@ -28,3 +28,17 @@ func ConvertRealmToLower(upperrealm []*ldap.AddRequest)  {
 
 
 }
+
+func ConvertAttributesToLower(upperAttribute *[]string)  *[]string {
+	r := regexp.MustCompile(`[A-Z]+=`)
+	var attributeAggregated []string
+	for _, attribute := range *upperAttribute {
+		tmpstring := r.ReplaceAllStringFunc(attribute, func(m string) string {
+			return strings.ToLower(m)
+		})
+		attributeAggregated = append(attributeAggregated, tmpstring)
+
+	}
+	upperAttribute = &attributeAggregated
+	return upperAttribute
+}
