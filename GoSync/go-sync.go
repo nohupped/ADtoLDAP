@@ -33,10 +33,10 @@ func init()  {
 
 func main() {
 	logfileMain := "/var/log/ldapsync.log"
-	TAG := gosyncmodules.RandomGen(5)
+	//TAG := gosyncmodules.RandomGen(5)
 	username, err := user.Current()
 	gosyncmodules.CheckForError(err)
-	loggerMain := gosyncmodules.StartLog(logfileMain, username, TAG)
+	loggerMain := gosyncmodules.StartLog(logfileMain, username)
 	defer loggerMain.Close()
 	configFile := "/etc/ldapsync.ini"
 	gosyncmodules.CheckPerm(configFile)
@@ -102,7 +102,12 @@ func main() {
 	MapAttributes, err := config.GetSection("Map")
 	gosyncmodules.CheckForError(err)
 
+	//SyncVariables
 
+	SyncDelay, err := config.GetSection("Sync")
+	gosyncmodules.CheckForError(err)
+	Delay, err := SyncDelay.GetKey("sleepTime")
+	gosyncmodules.CheckForError(err)
 	//End of variable declaration
 
 	gosyncmodules.Info.Println("\n\tADHost: ", ADHost, "\n\tADPort: ", ADPort, "\n\tADPageSize: ",
@@ -202,20 +207,20 @@ func main() {
 			for ; ; {
 				select {
 				case Add := <- AddChan:
-					for k, v := range Add {
-						gosyncmodules.Info.Println(k, ":", v)
+					for _, v := range Add {
+					//	gosyncmodules.Info.Println(k, ":", v)
 						err := LDAPConnection.Add(v)
 						if err != nil {
-							gosyncmodules.Error.Println(err)
+							//gosyncmodules.Error.Println(err)
 						}
 					}
 				case Del := <- DelChan:
-					for k, v := range Del  {
-						gosyncmodules.Info.Println(k, ":", v)
+					for _, v := range Del  {
+					//	gosyncmodules.Info.Println(k, ":", v)
 						delete := ldap.NewDelRequest(v.DN, []ldap.Control{})
 						err := LDAPConnection.Del(delete)
 						if err != nil {
-							gosyncmodules.Error.Println(err)
+							//gosyncmodules.Error.Println(err)
 						}
 					}
 				case shutdownAdd := <- shutdownAddChan:
@@ -234,8 +239,10 @@ func main() {
 			}
 
 			//Sleep the daemon
-			time.Sleep(time.Second * 1)
-			gosyncmodules.Info.Println("Iterating again...")
+			gosyncmodules.Info.Println("Sleeping for", Delay.MustInt(5), "seconds, and iterating again...")
+			time.Sleep(time.Second * time.Duration(Delay.MustInt(5)))
+
+
 
 		}
 	}

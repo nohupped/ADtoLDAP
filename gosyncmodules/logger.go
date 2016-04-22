@@ -30,27 +30,27 @@ func RandomGen(length int) string  {
 }
 
 
-func logInit(traceHandle io.Writer, infoHandle io.Writer, warningHandle io.Writer, errorHandle io.Writer, user *user.User, TAG string, tmp []string) {
+func logInit(traceHandle io.Writer, infoHandle io.Writer, warningHandle io.Writer, errorHandle io.Writer, user *user.User, TAG []string) {
 
 	Trace = log.New(traceHandle,
-		"TRACE: "+TAG+"  "+user.Username+"  " + strings.Join(tmp, " ") + " ",
+		"TRACE: "+"  "+user.Username+"  " + strings.Join(TAG, " ") + " ",
 		log.Ldate|log.Ltime|log.Lshortfile)
 
 	Info = log.New(infoHandle,
-		"INFO: "+TAG+"  "+user.Username+"  " + strings.Join(tmp, " ") + " ",
+		"INFO: "+"  "+user.Username+"  " + strings.Join(TAG, " ") + " ",
 		log.Ldate|log.Ltime|log.Lshortfile)
 
 	Warning = log.New(warningHandle,
-		"WARNING: "+TAG+"  "+user.Username+"  " + strings.Join(tmp, " ") + " ",
+		"WARNING: "+"  "+user.Username+"  " + strings.Join(TAG, " ") + " ",
 		log.Ldate|log.Ltime|log.Lshortfile)
 
 	Error = log.New(errorHandle,
-		"ERROR: "+TAG+"  "+user.Username+"  " + strings.Join(tmp, " ") + " ",
+		"ERROR: "+"  "+user.Username+"  " + strings.Join(TAG, " ") + " ",
 		log.Ldate|log.Ltime|log.Lshortfile)
 
 }
 
-func StartLog(logfile string, user *user.User, TAG string,  tmp ...string) *os.File{
+func StartLog(logfile string, user *user.User, TAG ...string) *os.File{
 	file, err := os.OpenFile(logfile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
 		fmt.Println("Cannot open logfile")
@@ -58,7 +58,7 @@ func StartLog(logfile string, user *user.User, TAG string,  tmp ...string) *os.F
 	}
 	multi := io.MultiWriter(file, os.Stdout)
 
-	logInit(multi, multi, multi, multi, user, TAG, tmp)
+	logInit(multi, multi, multi, multi, user, TAG)
 	Trace.SetOutput(file)
 	Info.SetOutput(file)
 	Warning.SetOutput(file)
