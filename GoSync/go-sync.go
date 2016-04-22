@@ -39,7 +39,6 @@ func main() {
 	loggerMain := gosyncmodules.StartLog(logfileMain, username, TAG)
 	defer loggerMain.Close()
 	configFile := "/etc/ldapsync.ini"
-//TODO Remove the commented permcheck finally
 	gosyncmodules.CheckPerm(configFile)
 	config, err := gosyncmodules.GetConfig(configFile)
 	gosyncmodules.CheckForError(err)
@@ -145,9 +144,7 @@ func main() {
 			LDAPBaseDN.String(), LDAPFilter.String(), LDAPAttribute, LDAPPage.MustInt(500), LDAPConnTimeOut.MustInt(10), ADElements,
 			ReplaceAttributes, MapAttributes)
 
-		//gosyncmodules.Info.Println(<-shutdownChannel)
 		gosyncmodules.Info.Println("Received", reflect.TypeOf(ADElementsChan), "from child thread, and has ", len(*ADElements), "elements")
-		//fmt.Println(len(*ADElements))
 
 	}else {
 		gosyncmodules.Info.Println("Initiating sync")
@@ -166,6 +163,12 @@ func main() {
 		gosyncmodules.Info.Println("Created channel of type", reflect.TypeOf(LDAPElementsChan))
 		LdapConnectionChan := make(chan *ldap.Conn)
 		gosyncmodules.Info.Println("Created channel of type", reflect.TypeOf(LdapConnectionChan))
+		AddChan := make(chan gosyncmodules.Action)
+		gosyncmodules.Info.Println("Created", reflect.TypeOf(AddChan))
+		DelChan := make(chan gosyncmodules.Action)
+		gosyncmodules.Info.Println("Created", reflect.TypeOf(DelChan))
+		shutdownAddChan := make(chan string)
+		shutdownDelChan := make(chan string)
 
 		//Starting infinite loop
 		for ; ;  {
@@ -185,19 +188,13 @@ func main() {
 
 			ADElementsConverted := gosyncmodules.InitialPopulateToLdap(ADElements, LDAPConnection, ReplaceAttributes, MapAttributes, true)
 			LDAPElementsConverted := gosyncmodules.InitialPopulateToLdap(LDAPElements, LDAPConnection, ReplaceAttributes, MapAttributes, true)
-			//fmt.Println(LDAPElementsConverted)
-			//fmt.Println(reflect.DeepEqual(ADElementsConverted, LDAPElementsConverted))
+
 
 
 			gosyncmodules.ConvertRealmToLower(ADElementsConverted)
 			gosyncmodules.Info.Println("Converted AD Realms to lowercase")
 
-			AddChan := make(chan gosyncmodules.Action)
-			gosyncmodules.Info.Println("Created", reflect.TypeOf(AddChan))
-			DelChan := make(chan gosyncmodules.Action)
-			gosyncmodules.Info.Println("Created", reflect.TypeOf(DelChan))
-			shutdownAddChan := make(chan string)
-			shutdownDelChan := make(chan string)
+
 
 			go gosyncmodules.FindAdds(&ADElementsConverted, &LDAPElementsConverted, LDAPConnection, AddChan, shutdownAddChan)
 			go gosyncmodules.FindDels(&LDAPElementsConverted, &ADElementsConverted, DelChan, shutdownDelChan)
