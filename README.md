@@ -48,4 +48,9 @@ groupObjectClass = top,posixGroup
 unixHomeDirectory = homeDirectory
 #specify member mapping if you are selecting member attribute from *attr above
 member = memberUid
+
+[Sync]
+#Add sleep time after each successful sync, in seconds.
+sleepTime = 5
+
 ```
