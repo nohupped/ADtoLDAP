@@ -7,9 +7,12 @@ import (
 	"os"
 	"gosyncmodules"
 	"reflect"
-	"os/signal"
+//	"os/signal"
 	"github.com/nohupped/ldap" //using a forked version that includes custom methods to retrieve and edit *AddRequest struct.
 	"time"
+	"runtime"
+//	"bytes"
+//	"runtime/pprof"
 )
 
 func init()  {
@@ -21,14 +24,14 @@ func init()  {
 		os.Exit(1)
 	}
 
-	c := make(chan os.Signal, 1)
+/*	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 	go func(){
 		for sig := range c {
 			fmt.Println(sig.String(), "received, terminating.")
 			os.Exit(1)
 		}
-	}()
+	}()*/
 }
 
 func main() {
@@ -153,30 +156,22 @@ func main() {
 
 	}else {
 		gosyncmodules.Info.Println("Initiating sync")
-		shutdownChannel := make(chan string)
-		defer gosyncmodules.Info.Println("Closed blocking channel")
-		defer close(shutdownChannel)
-		gosyncmodules.Info.Println("Initializing bool channel and getting AD entries in goroutine")
-		gosyncmodules.Info.Println("Gathering results")
 
-		//Create channel to receive slice of struct
-		ADElementsChan := make(chan *[]gosyncmodules.LDAPElement)
-		defer gosyncmodules.Info.Println("Closing channel ADElementsChan")
-		defer close(ADElementsChan)
-		gosyncmodules.Info.Println("Created channel of type", reflect.TypeOf(ADElementsChan))
-		LDAPElementsChan := make(chan *[]gosyncmodules.LDAPElement)
-		gosyncmodules.Info.Println("Created channel of type", reflect.TypeOf(LDAPElementsChan))
-		LdapConnectionChan := make(chan *ldap.Conn)
-		gosyncmodules.Info.Println("Created channel of type", reflect.TypeOf(LdapConnectionChan))
-		AddChan := make(chan gosyncmodules.Action)
-		gosyncmodules.Info.Println("Created", reflect.TypeOf(AddChan))
-		DelChan := make(chan gosyncmodules.Action)
-		gosyncmodules.Info.Println("Created", reflect.TypeOf(DelChan))
-		shutdownAddChan := make(chan string)
-		shutdownDelChan := make(chan string)
-
-		//Starting infinite loop
 		for ; ;  {
+			AddChan := make(chan gosyncmodules.Action)
+			gosyncmodules.Info.Println("Created", reflect.TypeOf(AddChan))
+			DelChan := make(chan gosyncmodules.Action)
+			gosyncmodules.Info.Println("Created", reflect.TypeOf(DelChan))
+			shutdownAddChan := make(chan string)
+			shutdownDelChan := make(chan string)
+			shutdownChannel := make(chan string)
+			LdapConnectionChan := make(chan *ldap.Conn)
+			gosyncmodules.Info.Println("Created channel of type", reflect.TypeOf(LdapConnectionChan))
+			ADElementsChan := make(chan *[]gosyncmodules.LDAPElement)
+			gosyncmodules.Info.Println("Created channel of type", reflect.TypeOf(ADElementsChan))
+			LDAPElementsChan := make(chan *[]gosyncmodules.LDAPElement)
+			gosyncmodules.Info.Println("Created channel of type", reflect.TypeOf(LDAPElementsChan))
+
 
 			go gosyncmodules.SyncrunLDAP(LDAPHost.String(), LDAP_Port, LDAPUsername.String(), LDAPPassword.String(),
 					LDAPBaseDN.String(), LDAPFilter.String(), LDAPAttribute, LDAPPage.MustInt(500),
@@ -237,9 +232,23 @@ func main() {
 				}
 
 			}
-
+			LDAPConnection.Close()
 			//Sleep the daemon
+			close(shutdownDelChan)
+			close(shutdownAddChan)
+			close(shutdownChannel)
+			close(LdapConnectionChan)
+			close(ADElementsChan)
+			close(LDAPElementsChan)
 			gosyncmodules.Info.Println("Sleeping for", Delay.MustInt(5), "seconds, and iterating again...")
+			gosyncmodules.Info.Println("Current active goroutines: ", runtime.NumGoroutine())
+			//Thanks to profiling, that helped finding a goroutine leak.
+			/*buf1 := new(bytes.Buffer)
+			pprof.Lookup("goroutine").WriteTo(buf1, 1)
+			fmt.Println("pprof.Lookup.WriteTo report:\n", string(buf1.Bytes()[:buf1.Len()]))
+			var buf [10240]byte
+			out := buf[:runtime.Stack(buf[:], true)]
+			fmt.Println("runtime.Stack report:\n", string(out))*/
 			time.Sleep(time.Second * time.Duration(Delay.MustInt(5)))
 
 
