@@ -28,8 +28,8 @@ func CheckPerm(filename string) {
 	}
 	if st.st_mode & C.S_IRGRP > 0 || st.st_mode & C.S_IWGRP > 0 || st.st_mode & C.S_IXGRP > 0 ||
 		st.st_mode & C.S_IROTH > 0 || st.st_mode & C.S_IWOTH > 0 || st.st_mode & C.S_IXOTH > 0 {
-		fmt.Println("file permission too broad, make it non-readable to groups and others.")
-		Info.Println("file permission too broad, make it non-readable to groups and others.")
+		fmt.Println(filename, "file permission too broad, make it non-readable to groups and others.")
+		Info.Println(filename, "file permission too broad, make it non-readable to groups and others.")
 		os.Exit(1)
 	}
 	Info.Println("File permission looks secure")
