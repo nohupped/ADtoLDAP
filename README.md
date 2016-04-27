@@ -11,7 +11,7 @@ ldapadd -Q -Y EXTERNAL -H ldapi:/// -f 2refint.ldif
 ```
 
 
-Sample ini file:
+Sample /etc/ldapsync.ini file:
 ```
 [ADServer]
 ADHost = <AD Server IP>
