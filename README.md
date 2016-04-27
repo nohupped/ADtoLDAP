@@ -2,6 +2,8 @@
 Gather AD Results based on attributes and sync to LDAP
 
 Enable `memberOf` attribute in ldap, to accomodate AD field, by using the 3 ldif files included in the repo.
+(Thanks to https://technicalnotes.wordpress.com/2014/04/19/openldap-setup-with-memberof-overlay/)
+
 ```
 ldapadd -Q -Y EXTERNAL -H ldapi:/// -f memberof_load_configure.ldif 
 ldapmodify -Q -Y EXTERNAL -H ldapi:/// -f 1refint.ldif
