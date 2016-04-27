@@ -12,7 +12,7 @@ ldapadd -Q -Y EXTERNAL -H ldapi:/// -f 2refint.ldif
 ```
 
 
-Sample /etc/ldapsync.ini file for syncing from Active directory to an openldap server):
+##### Sample /etc/ldapsync.ini file for syncing from Active directory to an openldap server):
 ```
 [ADServer]
 ADHost = <AD Server IP>
