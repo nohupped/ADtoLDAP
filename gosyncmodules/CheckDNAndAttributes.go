@@ -22,16 +22,16 @@ func CheckAttributes(LdapConnection *ldap.Conn, LdapEntry, ADEntry *ldap.AddRequ
 	var ADMapAggregated []MapADandLDAP
 	var LDAPMapAggregated []MapADandLDAP
 	for _, adEntries := range ADEntry.Attributes {
-		if adEntries.AttrType == "memberOf" {
-			adEntries.AttrVals = *ConvertAttributesToLower(&adEntries.AttrVals)
+		if adEntries.Type == "memberOf" {
+			adEntries.Vals = *ConvertAttributesToLower(&adEntries.Vals)
 		}
-		sort.Strings(adEntries.AttrVals)
-		ADMapped := MapADandLDAP{adEntries.AttrType: adEntries.AttrVals}
+		sort.Strings(adEntries.Vals)
+		ADMapped := MapADandLDAP{adEntries.Type: adEntries.Vals}
 		ADMapAggregated = append(ADMapAggregated, ADMapped)
 	}
 	for _, ldapEntries  := range LdapEntry.Attributes {
-		sort.Strings(ldapEntries.AttrVals)
-		LDAPMapped := MapADandLDAP{ldapEntries.AttrType: ldapEntries.AttrVals}
+		sort.Strings(ldapEntries.Vals)
+		LDAPMapped := MapADandLDAP{ldapEntries.Type: ldapEntries.Vals}
 		LDAPMapAggregated = append(LDAPMapAggregated, LDAPMapped)
 	}
 
