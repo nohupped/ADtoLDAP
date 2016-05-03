@@ -5,7 +5,8 @@ import (
 	"os/user"
 	"fmt"
 	"os"
-	"gosyncmodules"
+//	"gosyncmodules"
+	"github.com/nohupped/ADtoLDAP/gosyncmodules"
 	"reflect"
 //	"os/signal"
 	"github.com/nohupped/ldap" //using a forked version that includes custom methods to retrieve and edit *AddRequest struct.
