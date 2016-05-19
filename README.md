@@ -119,3 +119,6 @@ sleepTime = 60
 
 ```
 
+Now we need to create index for the frequently accessed attributes in ldap. A sample ldif file with a few of the attributes are added into the ldif directory. Run the query
+
+```ldapmodify -Q -Y EXTERNAL -H ldapi:/// -f addindex.ldif```
