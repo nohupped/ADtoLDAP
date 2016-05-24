@@ -26,7 +26,7 @@ username = cn=ADUser,cn=Users,dc=example,dc=com
 password = somepassword
 basedn = ou=someOu,dc=example,dc=com
 #Attributes required to be pulled
-attr = comment, givenName, unixHomeDirectory, sn, loginShell, memberOf, dn, o, uid, objectclass, cn, displayName, cn, uidNumber, gidNumber, member
+attr = givenName, unixHomeDirectory, sn, loginShell, memberOf, dn, o, uid, objectclass, cn, displayName, cn, uidNumber, gidNumber, member
 #ldap filter
 filter = (cn=*)
 
@@ -40,7 +40,7 @@ LDAPConnTimeOut = 10
 username = cn=someldapuser,dc=example,dc=com
 password = someldappasswd
 basedn = ou=someOu,dc=example,dc=com
-attr = comment, givenName, homeDirectory, sn, loginShell, memberOf, dn, o, uid, objectclass, cn, displayName, cn, uidNumber, gidNumber, memberUid
+attr = givenName, homeDirectory, sn, loginShell, memberOf, dn, o, uid, objectclass, cn, displayName, cn, uidNumber, gidNumber, memberUid
 filter = (cn=*)
 
 
@@ -84,7 +84,7 @@ password = somepassword1
 basedn = ou=SomeOU,dc=example,dc=com
 #Attributes required to be pulled
 #attr = comment, givenName, unixHomeDirectory, sn, loginShell, memberOf, dn, o, uid, objectclass, cn, displayName, cn, uidNumber, gidNumber, member
-attr = comment, givenName, homeDirectory, sn, loginShell, memberOf, dn, o, uid, objectclass, cn, displayName, cn, uidNumber, gidNumber, memberUid
+attr = givenName, homeDirectory, sn, loginShell, memberOf, dn, o, uid, objectclass, cn, displayName, cn, uidNumber, gidNumber, memberUid
 #ldap filter
 filter = (cn=*)
 
@@ -100,7 +100,7 @@ password = somepassword2
 basedn = ou=SomeOU,dc=example,dc=com
 #attr = "distinguishedName, comment, givenName, primaryGroupID, unixHomeDirectory, sn, loginShell, memberOf, dn, o, uid, objectclass, cn, displayName, cn, uidNumber, gidNumber"
 #attr = *
-attr = comment, givenName, homeDirectory, sn, loginShell, memberOf, dn, o, uid, objectclass, cn, displayName, cn, uidNumber, gidNumber, memberUid
+attr = givenName, homeDirectory, sn, loginShell, memberOf, dn, o, uid, objectclass, cn, displayName, cn, uidNumber, gidNumber, memberUid
 filter = (cn=*)
 
 
