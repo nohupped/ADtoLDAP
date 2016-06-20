@@ -1,5 +1,5 @@
 # ADtoLDAP
-This program will gather results from Active Directory, or even another openldap server based on the attributes specified in /etc/ldapsync.ini, and sync it to the second ldap server. For Active directory to LDAP syncing, we need to make sure that the schema of the openldap server is prepared to accomodate the additional attibutes AD incorporates (an example would be the `memberOf:` attribute)
+This program will gather results from Active Directory, or another openldap server based on the attributes specified in /etc/ldapsync.ini, and sync it to the second ldap server. For Active directory to LDAP syncing, we need to make sure that the schema of the openldap server is prepared to accomodate the additional attibutes AD incorporates (an example would be the `memberOf:` attribute)
 
 #### How to:
 
