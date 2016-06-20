@@ -2,6 +2,10 @@
 This program will gather results from Active Directory, or another openldap server based on the attributes specified in /etc/ldapsync.ini, and sync it to the second ldap server. For Active directory to LDAP syncing, we need to make sure that the schema of the openldap server is prepared to accomodate the additional attibutes AD incorporates (an example would be the `memberOf:` attribute)
 
 #### How to:
+##### install:
+```
+go get github.com/nohupped/ADtoLDAP
+```
 
 Enable `memberOf` attribute in ldap, to accomodate AD field, by using the 3 ldif files included in the repo.
 (Thanks to https://technicalnotes.wordpress.com/2014/04/19/openldap-setup-with-memberof-overlay/)
