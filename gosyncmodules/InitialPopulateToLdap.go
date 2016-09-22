@@ -41,10 +41,11 @@ func InitialPopulateToLdap(ADElements *[]LDAPElement, connectLDAP *ldap.Conn,
 					}
 				}
 				mappingvalue, ok := mapping[key]
+				//uid := maps["uid"]
 				if ok == true {
 					if mappingvalue == "memberUid"{
 						//members := memberTomemberUid(&value)
-						Add.Attribute(mappingvalue, memberTomemberUid(&value))
+						Add.Attribute(mappingvalue, memberTomemberUid(&value, ADElements))
 						continue
 					}
 					Add.Attribute(mappingvalue, value.([]string))
