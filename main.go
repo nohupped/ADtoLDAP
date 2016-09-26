@@ -5,8 +5,8 @@ import (
 	"os/user"
 	"fmt"
 	"os"
-//	"gosyncmodules"
-	"github.com/nohupped/ADtoLDAP/gosyncmodules"
+	"ADtoLDAP/gosyncmodules"
+//	"github.com/nohupped/ADtoLDAP/gosyncmodules"
 	"reflect"
 //	"os/signal"
 	"github.com/nohupped/ldap" //using a forked version that includes custom methods to retrieve and edit *AddRequest struct.
@@ -203,20 +203,20 @@ func main() {
 			for ; ; {
 				select {
 				case Add := <- AddChan:
-					for _, v := range Add {
-					//	gosyncmodules.Info.Println(k, ":", v)
+					for k, v := range Add {
+						gosyncmodules.Info.Println(k, ":", v)
 						err := LDAPConnection.Add(v)
 						if err != nil {
-							//gosyncmodules.Error.Println(err)
+							gosyncmodules.Error.Println(err)
 						}
 					}
 				case Del := <- DelChan:
-					for _, v := range Del  {
-					//	gosyncmodules.Info.Println(k, ":", v)
+					for k, v := range Del  {
+						gosyncmodules.Info.Println(k, ":", v)
 						delete := ldap.NewDelRequest(v.DN, []ldap.Control{})
 						err := LDAPConnection.Del(delete)
 						if err != nil {
-							//gosyncmodules.Error.Println(err)
+							gosyncmodules.Error.Println(err)
 						}
 					}
 				case shutdownAdd := <- shutdownAddChan:
