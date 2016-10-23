@@ -6,4 +6,8 @@
 !*.go
 !*.ini
 !*.ldif
+!*.c
+!*.h
 
+/Daemonizer/build/
+/Daemonizer/dist/
