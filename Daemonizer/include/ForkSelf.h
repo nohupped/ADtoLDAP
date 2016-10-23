@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 
 /* 
  * File:   ForkSelf.h
@@ -12,7 +7,13 @@
  */
 
 #pragma once
-extern void ForkSelf(char** path);
+
+#include <sys/types.h>
+
+extern pid_t child_pid;
+
+extern void ForkSelf(char* path);
 extern void fork_n_exec(char* path, char** args);
-char** get_program_args(char** argv, int argc);
+extern char** get_program_args(char** argv, int argc);
+extern void handle_hup_to_sigterm(int signal);
 

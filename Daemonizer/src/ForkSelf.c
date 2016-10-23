@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 
 /* 
  * File:   ForkSelf.c
@@ -22,7 +17,7 @@
 #define BUFSIZE 10000
 #define die(err) do { fprintf(stderr, "%s\n", err); exit(EXIT_FAILURE); } while (0);
 
-void ForkSelf(char** path) {
+void ForkSelf(char* path) {
     pid_t pid;
     pid = fork();
     
@@ -36,8 +31,8 @@ void ForkSelf(char** path) {
     }
     printf("Continuing with child %d\n", getpid());
     umask(0);
-    openlog(path[1], LOG_NOWAIT|LOG_PID,LOG_USER);
-    syslog(LOG_NOTICE, "%s Daemonized\n", path[0]);
+    openlog(path, LOG_NOWAIT|LOG_PID,LOG_USER);
+    syslog(LOG_NOTICE, "%s Daemonized\n", path);
     
     // New Session ID
     pid_t sid;
@@ -56,32 +51,31 @@ void ForkSelf(char** path) {
 
 int pipes[2];
 char buf[BUFSIZE];
+pid_t child_pid;
 
 void fork_n_exec(char* path, char** args){
-    
+
     pid_t pid;
     if(pipe(pipes) == -1){
         die("Pipe error");
     }
-    pid = fork();
+    pid = fork();  
     switch (pid) {
         case 0:
             printf("new child pid is %d\n", getpid());
-            
             dup2 (pipes[1], STDOUT_FILENO ); // duplicate the handle as STDOUT
             dup2(pipes[1], STDERR_FILENO); // duplicate the handle as STDERR
             close(pipes[0]); // Close both handles.
             close(pipes[1]);
-            syslog(LOG_NOTICE, "running as %s, %s\n", path, *args);
-            
-            execl(path, path, args, (char*) 0);
+            execv(path, args);
             break;
         default :
             // Closing stdout, stderr and stdin for the parent
             close(STDIN_FILENO);
             close(STDOUT_FILENO);
             close(STDERR_FILENO);
-            printf("This is the parent pid %d\n", getpid());
+            child_pid = pid;
+            signal(SIGHUP, handle_hup_to_sigterm);
             close(pipes[1]); // Closing the writing handle, as we are not using it
             ssize_t nbytes;
             for (;;) {
@@ -110,8 +104,14 @@ char** get_program_args(char** argv, int argc) {
     if (argc < 3) {
         return NULL;
     }
-    return &argv[2];
+    return &argv[1];
     
 }
 
-
+void handle_hup_to_sigterm(int signal) {
+    syslog(LOG_NOTICE, "Received signal %d, will be killing child pid %d\n", signal, child_pid);
+    kill(child_pid, 15);
+    
+    syslog(LOG_NOTICE, "Killed child pid %d\n", child_pid);
+    
+}
