@@ -1,13 +1,21 @@
 # ADtoLDAP
-This program will gather results from Active Directory, or another openldap server based on the attributes specified in /etc/ldapsync.ini, and sync it to the second ldap server. For Active directory to LDAP syncing, we need to make sure that the schema of the openldap server is prepared to accomodate the additional attibutes AD incorporates (an example would be the `memberOf:` attribute)
+This program will gather results from Active Directory, or another openldap server based on the attributes specified in /etc/ldapsync.ini, and sync it to the second ldap server. For Active directory to LDAP syncing, we need to make sure that the schema of the openldap server is prepared to accomodate the additional attibutes AD incorporates, if we are syncing them. (an example would be the `memberOf:` attribute) Better - omit those unless required.
 
 #### How to:
 ##### install:
 ```
 go get github.com/nohupped/ADtoLDAP
 ```
+A custom Daemonizer is provided in the Daemonizer directory, that daemonize the program, and capture any errors or panics that the program throws to the `STDOUT`, and logs it to the syslog. Compile it as 
+```
+gcc  -W -Wall ./main.c ./src/ForkSelf.c -o daemonizer
+```
+The program can be daemonized as 
+```
+<path/to>/daemonizer <path/to>/ADtoLDAP --sync
+```
 
-Enable `memberOf` attribute in ldap, to accomodate AD field, by using the 3 ldif files included in the repo.
+Enable `memberOf` attribute in ldap (required only if we are syncing it), to accomodate the equivalent AD field, by using the 3 ldif files included in the repo.
 (Thanks to https://technicalnotes.wordpress.com/2014/04/19/openldap-setup-with-memberof-overlay/)
 
 ```
@@ -70,7 +78,7 @@ The results can be verified, before the sync can be run continuously
 
 `./go-sync --sync`
 
-This is not daemonised from within (see http://stackoverflow.com/questions/10067295/how-to-start-a-go-program-as-a-daemon-in-ubuntu) and has to use an upstart or init script.(TODO)
+This is not daemonised from within (see http://stackoverflow.com/questions/10067295/how-to-start-a-go-program-as-a-daemon-in-ubuntu) and has to use an upstart or init script.
 
 
 ##### Sample /etc/ldapsync.ini for syncing from one openldap server to another openldap server
