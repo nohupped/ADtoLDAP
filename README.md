@@ -6,7 +6,7 @@ This program will gather results from Active Directory, or another openldap serv
 ```
 go get github.com/nohupped/ADtoLDAP
 ```
-A custom Daemonizer is provided in the Daemonizer directory, that daemonize the program, and capture any errors or panics that the program throws to the `STDOUT`, and logs it to the syslog. Compile it as 
+A custom Daemonizer is provided in the Daemonizer directory, that daemonize itself, forks again and runs the program, and capture any errors or panics that the program throws to the `STDOUT`, and logs it to the syslog. Compile it as 
 ```
 gcc  -W -Wall ./main.c ./src/ForkSelf.c -o daemonizer
 ```
