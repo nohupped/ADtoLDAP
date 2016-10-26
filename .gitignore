@@ -8,6 +8,8 @@
 !*.ldif
 !*.c
 !*.h
+!*.py
+!*.gitignore
 
 /Daemonizer/build/
 /Daemonizer/dist/
