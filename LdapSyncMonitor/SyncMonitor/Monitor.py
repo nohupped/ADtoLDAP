@@ -35,7 +35,6 @@ class Monitor:
                 counter += 1
                 self.seekbuffer += 1
                 self.f.seek((self.seekto - self.seekbuffer), 0)
-                print(byte)
             else:
                 self.seekbuffer += 1
                 self.f.seek((self.seekto - self.seekbuffer), 0)
