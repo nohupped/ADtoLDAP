@@ -114,10 +114,19 @@ func main() {
 	gosyncmodules.CheckForError(err)
 	//End of variable declaration
 
-	gosyncmodules.Info.Println("\n\tADHost: ", ADHost, "\n\tADPort: ", ADPort, "\n\tADPageSize: ",
-		ADPage, "\n\tADBaseDN: ", ADBaseDN, "\n\tADAttr: ", ADAttribute, "\n\tADFilter: ", ADFilter)
-	gosyncmodules.Info.Println("\n\tLDAPHost: ", LDAPHost, "\n\tADPort: ", ADPort, "\n\tADPageSize: ",
-		ADPage, "\n\tADBaseDN: ", ADBaseDN, "\n\tADAttr: ", ADAttr, "\n\tADFilter: ", ADFilter)
+	gosyncmodules.Info.Println("ADHost: ", ADHost)
+	gosyncmodules.Info.Println("ADPort: ", ADPort)
+	gosyncmodules.Info.Println("ADPageSize: ", ADPage)
+	gosyncmodules.Info.Println("ADBaseDN: ", ADBaseDN)
+	gosyncmodules.Info.Println("ADAttr: ", ADAttribute)
+	gosyncmodules.Info.Println("ADFilter: ", ADFilter)
+
+	gosyncmodules.Info.Println("LDAPHost: ", LDAPHost)
+	gosyncmodules.Info.Println("LDAPPort: ", LDAP_Port)
+	gosyncmodules.Info.Println("LDAPPageSize: ", LDAPPage)
+	gosyncmodules.Info.Println("LDAPBaseDN: ", LDAPBaseDN)
+	gosyncmodules.Info.Println("LDAPAttr: ", LDAPAttribute)
+	gosyncmodules.Info.Println("LDAPFilter: ", LDAPFilter)
 	var howtorun string
 	if os.Args[1] == "--init" {
 		howtorun = "init"

@@ -35,13 +35,15 @@ func CheckAttributes(LdapConnection *ldap.Conn, LdapEntry, ADEntry *ldap.AddRequ
 		LDAPMapAggregated = append(LDAPMapAggregated, LDAPMapped)
 	}
 
-	Info.Println("Got from AD", ADMapAggregated, "\n")
-	Info.Println("Got from LD", LDAPMapAggregated, "\n\n")
+	Info.Println("Got from AD", ADMapAggregated)
+	Info.Println("Got from LD", LDAPMapAggregated)
 
 	if reflect.DeepEqual(ADMapAggregated, LDAPMapAggregated) == true {
 		Info.Println("Both entries matches, passing...")
 	} else {
-		Info.Println("CHANGE DETECTED, \nAD ->", ADMapAggregated, "\nLD ->", LDAPMapAggregated, "\n\n")
+		Info.Println("CHANGE DETECTED")
+		Info.Println("AD -> ", ADMapAggregated)
+		Info.Println("LD -> ", LDAPMapAggregated)
 		delete := ldap.NewDelRequest(LdapEntry.DN, []ldap.Control{})
 		err := LdapConnection.Del(delete)
 		if err != nil {

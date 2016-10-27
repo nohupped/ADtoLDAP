@@ -23,7 +23,11 @@ class Monitor:
             sys.exit(2)
 
     def __get__last__line(self):
-        self.f.seek((self.seekto - self.seekbuffer), 0)
+        try:
+            self.f.seek((self.seekto - self.seekbuffer), 0)
+        except:
+            print("Negative seek, empty log file. Possibly the check coincided when the log file was rotated, or the daemon is dead.")
+            sys.exit(2)
         line = None
         counter = 0
         while 1:
