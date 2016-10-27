@@ -57,14 +57,11 @@ class Monitor:
     def __generate_alert(self):
         timediff = self.CurrentTimeEpoch - self.LogTimeEpoch
         if timediff < self.warningThreshold:
-            print("Status OK, timediff is ",  timediff, "seconds from Warning threshold.")
-            sys.exit(0)
+            self.Exitstatus = 0
         elif timediff > self.warningThreshold and timediff < self.errorThreshold:
-            print("Warning: Last timestamp updated in log file is at", self.timestamp, (self.CurrentTimeEpoch - self.LogTimeEpoch - self.warningThreshold), "seconds above threshold. Check if syncer is running.")
-            sys.exit(1)
+            self.Exitstatus = 1
         else:
-            print("Critical: Last timestamp updated in log file is at", self.timestamp, (self.CurrentTimeEpoch - self.LogTimeEpoch - self.errorThreshold), "seconds above threshold. Check if the syncer is running")
-            sys.exit(2)
+            self.Exitstatus = 2
 
     def init(self):
         self.__check__thresholds()
