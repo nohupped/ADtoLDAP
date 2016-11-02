@@ -43,7 +43,10 @@ int main(int argc, char** argv) {
     if (child_pid != 0) {
         syslog(LOG_NOTICE, "Child pid %d killed, you may want to investigate why...", child_pid);
         syslog(LOG_NOTICE, "removing file %s", touch_pid);
-
+        int err = unlink(touch_pid);
+        if (err != 0){
+            exit(err);
+        }
     }
     return (EXIT_SUCCESS);
 }
