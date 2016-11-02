@@ -28,8 +28,14 @@ void ForkSelf(char* path) {
         printf("Forked, killing parent %d\n", getpid());
         exit(EXIT_SUCCESS);
     }
+    signal(SIGSEGV, handle_seg);
+
     pid_t forked_pid = getpid();
-    char* create_pid_file = write_pid_to_file();
+    char* create_pid_file = get_pid_file();
+    if( access( create_pid_file, F_OK ) != -1 ) {
+        printf("Stale pid file %s exists. Remove it and re-run\n", create_pid_file);
+        exit(1);
+    }
     syslog(LOG_NOTICE, "pid file would be %s, %d", create_pid_file, forked_pid);
     FILE *pid_file;
     pid_file = fopen(create_pid_file, "w");
@@ -115,8 +121,19 @@ void handle_hup_to_sigterm(int signal) {
     syslog(LOG_NOTICE, "Killed child pid %d\n", child_pid);
     
 }
+
+void handle_seg(int signal) {
+    syslog(LOG_ERR, "Received signal %d,(segmentation fault). The program will die now. This could be because of a permission "
+            "problem to write the pid file to /var/run, or something serious. Please check if you are "
+            "running this program as a privileged user.", signal);
+    printf("Received signal %d,(segmentation fault). The program will die now. This could be because of a permission "
+                   "problem to write the pid file to /var/run, or something serious. Please check if you are "
+                   "running this program as a privileged user.\n", signal);
+    exit(1);
+}
+
 char* touch_pid;
-char*  write_pid_to_file() {
+char*  get_pid_file() {
     char* program = (char*) malloc(strlen(progname) + 1);
     strncat(program, progname, strlen(progname) + 1);
     int i = strlen(program)+1;
@@ -133,14 +150,11 @@ char*  write_pid_to_file() {
     touch_pid = concat("/var/run/", &filename[i+1], ".pid");
     return touch_pid;
 
-
-
-
 }
 
 char* concat(const char *s1, const char *s2, const char *s3)
 {
-    char *result = malloc(strlen(s1)+strlen(s2)+1);
+    char *result = malloc(strlen(s1)+strlen(s2)+strlen(s3)+1);
     strncpy(result, s1, strlen(s1));
     strncat(result, s2, strlen(s2));
     strncat(result, s3, (strlen(s3)+1));
