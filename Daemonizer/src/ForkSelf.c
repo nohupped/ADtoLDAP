@@ -8,7 +8,6 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <syslog.h>
-#include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
 #include <stdio.h>
@@ -16,7 +15,6 @@
 #include "../include/ForkSelf.h"
 #define BUFSIZE 10000
 #define die(err) do { fprintf(stderr, "%s\n", err); exit(EXIT_FAILURE); } while (0);
-
 void ForkSelf(char* path) {
     pid_t pid;
     pid = fork();
@@ -25,11 +23,20 @@ void ForkSelf(char* path) {
         printf("Couldn't fork\n");
         exit(EXIT_FAILURE);
     }
+
     if (pid > 0) {
         printf("Forked, killing parent %d\n", getpid());
         exit(EXIT_SUCCESS);
     }
-    printf("Continuing with child %d\n", getpid());
+    pid_t forked_pid = getpid();
+    char* create_pid_file = write_pid_to_file();
+    syslog(LOG_NOTICE, "pid file would be %s, %d", create_pid_file, forked_pid);
+    FILE *pid_file;
+    pid_file = fopen(create_pid_file, "w");
+    fprintf(pid_file, "%d\n", (int)forked_pid);
+    fclose(pid_file);
+
+    printf("Child %d will be the new parent and session leader\n", getpid());
     umask(0);
     openlog(path, LOG_NOWAIT|LOG_PID,LOG_USER);
     syslog(LOG_NOTICE, "%s Daemonized\n", path);
@@ -86,18 +93,11 @@ void fork_n_exec(char* path, char** args){
                 if (nbytes == 0) {
                     break;
                 }
-
          //       write(STDOUT_FILENO, "\n", 1);
                 syslog(LOG_NOTICE, "%s", buf);
-                
             }
-
-            
             wait(NULL);
-            
     }
-        
-    
 }
 
 char** get_program_args(char** argv, int argc) {
@@ -114,4 +114,35 @@ void handle_hup_to_sigterm(int signal) {
     
     syslog(LOG_NOTICE, "Killed child pid %d\n", child_pid);
     
+}
+char* touch_pid;
+char*  write_pid_to_file() {
+    char* program = (char*) malloc(strlen(progname) + 1);
+    strncat(program, progname, strlen(progname) + 1);
+    int i = strlen(program)+1;
+    char* filename = (char*) malloc(strlen(progname) + 1);
+
+    while (program[i] != '/') {
+        if (i < 0){
+            break;
+        }
+        filename[i] = program[i];
+        i--;
+
+    }
+    touch_pid = concat("/var/run/", &filename[i+1], ".pid");
+    return touch_pid;
+
+
+
+
+}
+
+char* concat(const char *s1, const char *s2, const char *s3)
+{
+    char *result = malloc(strlen(s1)+strlen(s2)+1);
+    strncpy(result, s1, strlen(s1));
+    strncat(result, s2, strlen(s2));
+    strncat(result, s3, (strlen(s3)+1));
+    return result;
 }

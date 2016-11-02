@@ -15,7 +15,8 @@
 #include "include/ForkSelf.h"
 #define die(err) do { fprintf(stderr, "%s\n", err); exit(EXIT_FAILURE); } while (0);
 
-
+char* progname;
+char** args;
 int main(int argc, char** argv) {
 
     if (argc < 2) {
@@ -23,9 +24,9 @@ int main(int argc, char** argv) {
         return (EXIT_FAILURE);
     }
 
-    
-    char* progname = argv[1];
-    char** args = get_program_args(argv, argc);
+
+    progname = argv[1];
+    args = get_program_args(argv, argc);
 
     if (args) {
         ForkSelf(progname);
@@ -38,6 +39,12 @@ int main(int argc, char** argv) {
 
 
     wait(NULL);
+
+    if (child_pid != 0) {
+        syslog(LOG_NOTICE, "Child pid %d killed, you may want to investigate why...", child_pid);
+        syslog(LOG_NOTICE, "removing file %s", touch_pid);
+
+    }
     return (EXIT_SUCCESS);
 }
 
