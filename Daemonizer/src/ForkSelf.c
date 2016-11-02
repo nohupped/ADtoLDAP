@@ -152,8 +152,7 @@ char*  get_pid_file() {
 
 }
 
-char* concat(const char *s1, const char *s2, const char *s3)
-{
+char* concat(const char* s1, const char* s2, const char* s3) {
     char *result = malloc(strlen(s1)+strlen(s2)+strlen(s3)+1);
     strncpy(result, s1, strlen(s1));
     strncat(result, s2, strlen(s2));
