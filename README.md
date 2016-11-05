@@ -134,3 +134,6 @@ sleepTime = 60
 Now we need to create index for the frequently accessed attributes in ldap. A sample ldif file with a few of the attributes are added into the ldif directory. Run the query
 
 ```ldapmodify -Q -Y EXTERNAL -H ldapi:/// -f addindex.ldif```
+
+##### Monitoring
+A monitoring module written in python 3 is provided in the `LdapSyncMonitor/SyncMonitor` directory, that seeks to the end of the log file, reads backwards until it finds another newline character(doing this because of the size of logs it can generate), and from the captured line, takes the timestamp, and do the math with the warning and critical thresholds that the class `Monitor` accepts, and exits with relevent exit code suitable for nagios. A sample usage can be found in `LdapSyncMonitor/monitorDaemon.py` script. 
