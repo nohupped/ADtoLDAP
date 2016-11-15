@@ -24,6 +24,9 @@ ldapmodify -Q -Y EXTERNAL -H ldapi:/// -f 1refint.ldif
 ldapadd -Q -Y EXTERNAL -H ldapi:/// -f 2refint.ldif
 ```
 
+##### The permission of /etc/ldapsync.ini
+
+The program checks if the file permissions for /etc/ldapsync.ini are too broad. If it is not 600, the program will report that, and will not start. This is checked to prevent a non-privileged read of the username and password used to bind to both the servers, which are stored in this configuration file.  
 
 ##### Sample /etc/ldapsync.ini file for syncing from Active directory to an openldap server):
 ```
