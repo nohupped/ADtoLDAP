@@ -5,13 +5,14 @@ import (
 	"os/user"
 	"fmt"
 	"os"
-//	"ADtoLDAP/gosyncmodules"
-	"github.com/nohupped/ADtoLDAP/gosyncmodules"
+	"ADtoLDAP/gosyncmodules"
+//	"github.com/nohupped/ADtoLDAP/gosyncmodules"
 	"reflect"
 //	"os/signal"
-	"github.com/nohupped/ldap" //using a forked version that includes custom methods to retrieve and edit *AddRequest struct.
+	"gopkg.in/ldap.v2"
 	"time"
 	"runtime"
+	"flag"
 //	"bytes"
 //	"runtime/pprof"
 )
@@ -36,15 +37,30 @@ func init()  {
 }
 
 func main() {
+	// Initialize logger
 	logfileMain := "/var/log/ldapsync.log"
-	//TAG := gosyncmodules.RandomGen(5)
 	username, err := user.Current()
 	gosyncmodules.CheckForError(err)
 	loggerMain := gosyncmodules.StartLog(logfileMain, username)
 	defer loggerMain.Close()
-	configFile := "/etc/ldapsync.ini"
-	gosyncmodules.CheckPerm(configFile)
-	config, err := gosyncmodules.GetConfig(configFile)
+
+	// Flags
+	checkSafety := flag.Bool("safe", true, "Set it to false to skip config file securitycheck")
+	syncrun := flag.String("sync", "once", "Set it to \"once\" for a single run, and \"daemon\" to run it continuously")
+	configFile := flag.String("configfile", "/etc/ldapsync.ini", "Path to the config file")
+	flag.Parse()
+
+
+	gosyncmodules.Info.Println("safe option set to", *checkSafety)
+	gosyncmodules.Info.Println("Config file is, ", *configFile)
+
+
+	if *checkSafety == true {
+		gosyncmodules.CheckPerm(*configFile)
+	} else {
+		gosyncmodules.Info.Println("Skipping file permission check on", *configFile)
+	}
+	config, err := gosyncmodules.GetConfig(*configFile)
 	gosyncmodules.CheckForError(err)
 
 	//AD Variables
@@ -128,16 +144,18 @@ func main() {
 	gosyncmodules.Info.Println("LDAPAttr: ", LDAPAttribute)
 	gosyncmodules.Info.Println("LDAPFilter: ", LDAPFilter)
 	var howtorun string
-	if os.Args[1] == "--init" {
+	if *syncrun == "once" {
 		howtorun = "init"
-	} else if os.Args[1] == "--sync" {
+	} else if *syncrun == "daemon" {
 		howtorun = "sync"
 	} else {
-		fmt.Println("Usage:\n\t", os.Args[0],
+		/*fmt.Println("Usage:\n\t", os.Args[0],
 			"--init to do an init run to freshly populate ldap",
 			"from AD. Caution, if there is data already populated in ldap,\n\t\t",
 			"you may have to wipe it clean before doing init. \n\t", os.Args[0],
 			"--sync to keep monitoring the changes and sync")
+			*/
+		flag.PrintDefaults()
 		os.Exit(1)
 	}
 	gosyncmodules.Info.Println("Starting script with", howtorun, "parameter")

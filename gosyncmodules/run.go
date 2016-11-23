@@ -4,7 +4,7 @@ import (
 	"reflect"
 	//"fmt"
 	"gopkg.in/ini.v1"
-	"github.com/nohupped/ldap" //using a forked version that includes custom methods to retrieve and edit *AddRequest struct.
+	"gopkg.in/ldap.v2"
 )
 
 func InitialrunAD(ADHost, AD_Port, ADUsername, ADPassword, ADBaseDN, ADFilter string, ADAttribute []string,

@@ -1,7 +1,8 @@
 package gosyncmodules
 
 import (
-	"github.com/nohupped/ldap"
+//	"github.com/nohupped/ldap"
+	"gopkg.in/ldap.v2"
 )
 
 type Action map[string]*ldap.AddRequest
@@ -24,6 +25,7 @@ func FindAdds(ADElementsConverted, LDAPElementsConverted *[]*ldap.AddRequest, Ld
 		}
 	}
 }
+
 
 
 func FindDels(LDAPElementsConverted, ADElementsConverted *[]*ldap.AddRequest, DelChan chan Action, shutdownDelChan chan string){
