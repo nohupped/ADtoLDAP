@@ -8,9 +8,14 @@ import (
 )
 
 func InitialrunAD(ADHost, AD_Port, ADUsername, ADPassword, ADBaseDN, ADFilter string, ADAttribute []string,
-	ADPage int, ADConnTimeout int, shutdownChannel chan string, ADElementsChan chan *[]LDAPElement)  {
+	ADPage int, ADConnTimeout int, UseTLS bool, InsecureSkipVerify bool, CRTPath string, shutdownChannel chan string, ADElementsChan chan *[]LDAPElement)  {
 	Info.Println("Connecting to AD", ADHost)
-	connectAD := ConnectToAD(ADHost, AD_Port, ADUsername, ADPassword, ADConnTimeout)
+	var connectAD *ldap.Conn
+	if UseTLS == false {
+		connectAD = ConnectToAD(ADHost, AD_Port, ADUsername, ADPassword, ADConnTimeout)
+	} else  {
+		connectAD = ConnectToADTLS(ADHost, AD_Port, ADUsername, ADPassword, ADConnTimeout)
+	}
 	defer func() {shutdownChannel <- "Done from func InitialrunAD"}()
 	defer Info.Println("closed")
 	defer connectAD.Close()

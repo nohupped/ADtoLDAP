@@ -1,6 +1,10 @@
 # ADtoLDAP
 This program will gather results from Active Directory, or another openldap server based on the attributes specified in /etc/ldapsync.ini, and sync it to the second ldap server. For Active directory to LDAP syncing, we need to make sure that the schema of the openldap server is prepared to accomodate the additional attibutes AD incorporates, if we are syncing them. (an example would be the `memberOf:` attribute) Better - omit those unless required.
-
+This can run over an encrypted connection as well. To use tls, make sure to have the Active directory's key to be exported from the AD server by 
+```
+certutil  -ca.cert ca_name.cer > ca.crt
+```
+and imported in the linux servers.
 #### How to:
 ##### install:
 ```
@@ -33,6 +37,9 @@ The program checks if the file permissions for /etc/ldapsync.ini are too broad. 
 [ADServer]
 ADHost = <AD Server IP>
 ADPort = 389
+UseTLS = true
+InsecureSkipVerify = true
+CRTPath = /etc/ldap.crt
 #Page the result size to prevent possible OOM error and crash
 ADPage = 500
 #AD Connection Timeout in seconds (Defaults to 10)

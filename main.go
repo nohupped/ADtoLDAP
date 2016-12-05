@@ -3,7 +3,7 @@ package main
 
 import (
 	"os/user"
-	"fmt"
+//	"fmt"
 	"os"
 	"ADtoLDAP/gosyncmodules"
 //	"github.com/nohupped/ADtoLDAP/gosyncmodules"
@@ -17,26 +17,20 @@ import (
 //	"runtime/pprof"
 )
 
-func init()  {
-	if len(os.Args) == 1 {
-		fmt.Println("Usage:\n\t", os.Args[0],
-			"--init to do an init run to freshly populate ldap",
-			"from AD. Caution, this can overwrite data. \n\t", os.Args[0],
-			"--sync to keep monitoring the changes and sync")
-		os.Exit(1)
-	}
+/*func init()  {
 
-/*	c := make(chan os.Signal, 1)
+	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 	go func(){
 		for sig := range c {
 			fmt.Println(sig.String(), "received, terminating.")
 			os.Exit(1)
 		}
-	}()*/
-}
+	}()
+}*/
 
 func main() {
+
 	// Initialize logger
 	logfileMain := "/var/log/ldapsync.log"
 	username, err := user.Current()
@@ -46,7 +40,7 @@ func main() {
 
 	// Flags
 	checkSafety := flag.Bool("safe", true, "Set it to false to skip config file securitycheck")
-	syncrun := flag.String("sync", "once", "Set it to \"once\" for a single run, and \"daemon\" to run it continuously")
+	syncrun := flag.String("sync", "daemon", "Set it to \"once\" for a single run, and \"daemon\" to run it continuously")
 	configFile := flag.String("configfile", "/etc/ldapsync.ini", "Path to the config file")
 	flag.Parse()
 
@@ -69,6 +63,12 @@ func main() {
 	ADHost, err := ADGlobal.GetKey("ADHost")
 	gosyncmodules.CheckForError(err)
 	ADPort, err := ADGlobal.GetKey("ADPort")
+	gosyncmodules.CheckForError(err)
+	ADUseTLS, err := ADGlobal.GetKey("UseTLS")
+	gosyncmodules.CheckForError(err)
+	ADCRTPath, err := ADGlobal.GetKey("CRTPath")
+	gosyncmodules.CheckForError(err)
+	ADCRTInsecureSkipVerify, err := ADGlobal.GetKey("InsecureSkipVerify")
 	gosyncmodules.CheckForError(err)
 	ADPage, err := ADGlobal.GetKey("ADPage")
 	gosyncmodules.CheckForError(err)
@@ -149,16 +149,11 @@ func main() {
 	} else if *syncrun == "daemon" {
 		howtorun = "sync"
 	} else {
-		/*fmt.Println("Usage:\n\t", os.Args[0],
-			"--init to do an init run to freshly populate ldap",
-			"from AD. Caution, if there is data already populated in ldap,\n\t\t",
-			"you may have to wipe it clean before doing init. \n\t", os.Args[0],
-			"--sync to keep monitoring the changes and sync")
-			*/
+
 		flag.PrintDefaults()
 		os.Exit(1)
 	}
-	gosyncmodules.Info.Println("Starting script with", howtorun, "parameter")
+	gosyncmodules.Info.Println("Starting script with", *syncrun, "parameter")
 
 	if howtorun == "init" {
 		shutdownChannel := make(chan string)
@@ -172,7 +167,9 @@ func main() {
 		gosyncmodules.Info.Println("Created channel of type", reflect.TypeOf(ADElementsChan))
 
 		go gosyncmodules.InitialrunAD(ADHost.String(), AD_Port, ADUsername.String(), ADPassword.String(),
-			ADBaseDN.String(), ADFilter.String(), ADAttribute, ADPage.MustInt(500), ADConnTimeOut.MustInt(10), shutdownChannel, ADElementsChan)
+			ADBaseDN.String(), ADFilter.String(), ADAttribute, ADPage.MustInt(500), ADConnTimeOut.MustInt(10),
+			ADUseTLS.MustBool(true), ADCRTInsecureSkipVerify.MustBool(false),
+			ADCRTPath.String(), shutdownChannel, ADElementsChan)
 		ADElements := <- ADElementsChan		//Finished retriving AD results
 		gosyncmodules.Info.Println(<-shutdownChannel)	//Finished reading from Blocking channel
 
@@ -207,7 +204,8 @@ func main() {
 					ReplaceAttributes, MapAttributes)
 			go gosyncmodules.InitialrunAD(ADHost.String(), AD_Port, ADUsername.String(), ADPassword.String(),
 				ADBaseDN.String(), ADFilter.String(), ADAttribute, ADPage.MustInt(500),
-				ADConnTimeOut.MustInt(10), shutdownChannel, ADElementsChan)
+				ADConnTimeOut.MustInt(10), ADUseTLS.MustBool(true), ADCRTInsecureSkipVerify.MustBool(false),
+				ADCRTPath.String(), shutdownChannel, ADElementsChan)
 			ADElements := <- ADElementsChan
 			LDAPElements := <- LDAPElementsChan
 			LDAPConnection := <- LdapConnectionChan
