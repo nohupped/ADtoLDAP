@@ -68,6 +68,8 @@ func main() {
 	gosyncmodules.CheckForError(err)
 	ADCrtValidFor, err := ADGlobal.GetKey("CRTValidFor")
 	gosyncmodules.CheckForError(err)
+	ADCrtPath, err := ADGlobal.GetKey("CRTPath")
+	gosyncmodules.CheckForError(err)
 	ADCRTInsecureSkipVerify, err := ADGlobal.GetKey("InsecureSkipVerify")
 	gosyncmodules.CheckForError(err)
 	ADPage, err := ADGlobal.GetKey("ADPage")
@@ -169,7 +171,7 @@ func main() {
 		go gosyncmodules.InitialrunAD(ADHost.String(), AD_Port, ADUsername.String(), ADPassword.String(),
 			ADBaseDN.String(), ADFilter.String(), ADAttribute, ADPage.MustInt(500), ADConnTimeOut.MustInt(10),
 			ADUseTLS.MustBool(true), ADCRTInsecureSkipVerify.MustBool(false),
-			ADCrtValidFor.String(), shutdownChannel, ADElementsChan)
+			ADCrtValidFor.String(), ADCrtPath.MustString("/etc/ldap.crt"), shutdownChannel, ADElementsChan)
 		ADElements := <- ADElementsChan		//Finished retriving AD results
 		gosyncmodules.Info.Println(<-shutdownChannel)	//Finished reading from Blocking channel
 
@@ -205,7 +207,7 @@ func main() {
 			go gosyncmodules.InitialrunAD(ADHost.String(), AD_Port, ADUsername.String(), ADPassword.String(),
 				ADBaseDN.String(), ADFilter.String(), ADAttribute, ADPage.MustInt(500),
 				ADConnTimeOut.MustInt(10), ADUseTLS.MustBool(true), ADCRTInsecureSkipVerify.MustBool(false),
-				ADCrtValidFor.String(), shutdownChannel, ADElementsChan)
+				ADCrtValidFor.String(), ADCrtPath.MustString("/etc/ldap.crt"), shutdownChannel, ADElementsChan)
 			ADElements := <- ADElementsChan
 			LDAPElements := <- LDAPElementsChan
 			LDAPConnection := <- LdapConnectionChan
@@ -267,7 +269,7 @@ func main() {
 			close(ADElementsChan)
 			close(LDAPElementsChan)
 			gosyncmodules.Info.Println("Sleeping for", Delay.MustInt(5), "seconds, and iterating again...")
-			gosyncmodules.Info.Println("Current active goroutines: ", runtime.NumGoroutine())
+			gosyncmodules.Info.Println("Currently active goroutines: ", runtime.NumGoroutine())
 			//Thanks to profiling, that helped finding a goroutine leak.
 			/*buf1 := new(bytes.Buffer)
 			pprof.Lookup("goroutine").WriteTo(buf1, 1)

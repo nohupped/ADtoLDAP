@@ -41,10 +41,13 @@ The program checks if the file permissions for /etc/ldapsync.ini are too broad. 
 ```
 [ADServer]
 ADHost = <AD Server IP>
+#ADPort = 636 for ssl
 ADPort = 389
 UseTLS = true
 InsecureSkipVerify = true
 CRTValidFor = example1.domain.com
+#Path to the pem file.
+CRTPath = /etc/ldap.crt
 #Page the result size to prevent possible OOM error and crash
 ADPage = 500
 #AD Connection Timeout in seconds (Defaults to 10)

@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 	"crypto/tls"
+	"io/ioutil"
+	"crypto/x509"
 )
 
 func ConnectToAD(ADHost, AD_Port string, ADUsername, ADPassword string, ADConnTimeout int) (*ldap.Conn){
@@ -18,11 +20,22 @@ func ConnectToAD(ADHost, AD_Port string, ADUsername, ADPassword string, ADConnTi
 	return l
 }
 
-func ConnectToADTLS(ADHost, AD_Port string, ADUsername, ADPassword string, ADConnTimeout int, CRTInsecureSkipVerify bool, CRTValidFor string) (*ldap.Conn) {
+func ConnectToADTLS(ADHost, AD_Port string, ADUsername, ADPassword string, ADConnTimeout int, CRTInsecureSkipVerify bool,
+CRTValidFor, CRTPath string) (*ldap.Conn) {
 	ldap.DefaultTimeout = time.Duration(ADConnTimeout) * time.Second
 	Info.Println("Set AD connection timeout to", ldap.DefaultTimeout)
-	Info.Println("Dialling TLS")
-	l, err := ldap.DialTLS("tcp", fmt.Sprintf("%s:%s", ADHost, AD_Port), &tls.Config{InsecureSkipVerify: CRTInsecureSkipVerify, ServerName: CRTValidFor})
+	caCert, err := ioutil.ReadFile(CRTPath)
+	pool := x509.NewCertPool()
+	pool.AppendCertsFromPEM(caCert)
+
+
+	tlsconfig := new(tls.Config)
+	tlsconfig.InsecureSkipVerify = CRTInsecureSkipVerify
+	tlsconfig.ServerName = CRTValidFor
+	tlsconfig.RootCAs = pool
+	Info.Printf("Dialling TLS with config %+v\n", *tlsconfig)
+	Info.Println("Nested structs like tls.Config.RootCAs are not logged.")
+	l, err := ldap.DialTLS("tcp", fmt.Sprintf("%s:%s", ADHost, AD_Port), tlsconfig)
 	CheckForError(err)
 	err = l.Bind(ADUsername, ADPassword)
 	CheckForError(err)
