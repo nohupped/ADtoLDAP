@@ -10,7 +10,6 @@ panic: LDAP Result Code 200 "": x509: certificate is valid for example1.domain.c
 ```
 certutil  -ca.cert ca_name.cer > ca.crt
 ```
-and imported in the linux servers.
 #### How to:
 ##### install:
 ```
