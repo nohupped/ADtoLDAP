@@ -66,7 +66,7 @@ func main() {
 	gosyncmodules.CheckForError(err)
 	ADUseTLS, err := ADGlobal.GetKey("UseTLS")
 	gosyncmodules.CheckForError(err)
-	ADCRTPath, err := ADGlobal.GetKey("CRTPath")
+	ADCrtValidFor, err := ADGlobal.GetKey("CRTValidFor")
 	gosyncmodules.CheckForError(err)
 	ADCRTInsecureSkipVerify, err := ADGlobal.GetKey("InsecureSkipVerify")
 	gosyncmodules.CheckForError(err)
@@ -169,7 +169,7 @@ func main() {
 		go gosyncmodules.InitialrunAD(ADHost.String(), AD_Port, ADUsername.String(), ADPassword.String(),
 			ADBaseDN.String(), ADFilter.String(), ADAttribute, ADPage.MustInt(500), ADConnTimeOut.MustInt(10),
 			ADUseTLS.MustBool(true), ADCRTInsecureSkipVerify.MustBool(false),
-			ADCRTPath.String(), shutdownChannel, ADElementsChan)
+			ADCrtValidFor.String(), shutdownChannel, ADElementsChan)
 		ADElements := <- ADElementsChan		//Finished retriving AD results
 		gosyncmodules.Info.Println(<-shutdownChannel)	//Finished reading from Blocking channel
 
@@ -205,7 +205,7 @@ func main() {
 			go gosyncmodules.InitialrunAD(ADHost.String(), AD_Port, ADUsername.String(), ADPassword.String(),
 				ADBaseDN.String(), ADFilter.String(), ADAttribute, ADPage.MustInt(500),
 				ADConnTimeOut.MustInt(10), ADUseTLS.MustBool(true), ADCRTInsecureSkipVerify.MustBool(false),
-				ADCRTPath.String(), shutdownChannel, ADElementsChan)
+				ADCrtValidFor.String(), shutdownChannel, ADElementsChan)
 			ADElements := <- ADElementsChan
 			LDAPElements := <- LDAPElementsChan
 			LDAPConnection := <- LdapConnectionChan

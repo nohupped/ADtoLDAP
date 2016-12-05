@@ -1,6 +1,12 @@
 # ADtoLDAP
 This program will gather results from Active Directory, or another openldap server based on the attributes specified in /etc/ldapsync.ini, and sync it to the second ldap server. For Active directory to LDAP syncing, we need to make sure that the schema of the openldap server is prepared to accomodate the additional attibutes AD incorporates, if we are syncing them. (an example would be the `memberOf:` attribute) Better - omit those unless required.
-This can run over an encrypted connection as well. To use tls, make sure to have the Active directory's key to be exported from the AD server by 
+This can run over an encrypted connection as well. To use tls, make sure to add the domain name for which the AD certificate is generated. If that fails, the program panics throwing 
+```
+panic: LDAP Result Code 200 "": x509: certificate is valid for example1.domain.com, example2.domain.com, EXAMPLE, not examples.domains.com
+```
+
+##### How to export the crt from windows server, if at all required:
+
 ```
 certutil  -ca.cert ca_name.cer > ca.crt
 ```
@@ -16,7 +22,7 @@ gcc  -W -Wall ./main.c ./src/ForkSelf.c -o daemonizer
 ```
 The program can be daemonized as 
 ```
-<path/to>/daemonizer <path/to>/ADtoLDAP --sync
+<path/to>/daemonizer <path/to>/ADtoLDAP --sync=daemon --configfile=/etc/ldapsync.ini --safe=false
 ```
 
 Enable `memberOf` attribute in ldap (required only if we are syncing it), to accomodate the equivalent AD field, by using the 3 ldif files included in the repo.
@@ -30,7 +36,7 @@ ldapadd -Q -Y EXTERNAL -H ldapi:/// -f 2refint.ldif
 
 ##### The permission of /etc/ldapsync.ini
 
-The program checks if the file permissions for /etc/ldapsync.ini are too broad. If it is not 600, the program will report that, and will not start. This is checked to prevent a non-privileged read of the username and password used to bind to both the servers, which are stored in this configuration file.  
+The program checks if the file permissions for /etc/ldapsync.ini are too broad. If it is not 600, the program will report that, and will not start. This is checked to prevent a non-privileged read of the username and password used to bind to both the servers, which are stored in this configuration file. This can be over-ridden by running the program with the flag `--safe=false`.
 
 ##### Sample /etc/ldapsync.ini file for syncing from Active directory to an openldap server):
 ```
@@ -39,7 +45,7 @@ ADHost = <AD Server IP>
 ADPort = 389
 UseTLS = true
 InsecureSkipVerify = true
-CRTPath = /etc/ldap.crt
+CRTValidFor = example1.domain.com
 #Page the result size to prevent possible OOM error and crash
 ADPage = 500
 #AD Connection Timeout in seconds (Defaults to 10)
