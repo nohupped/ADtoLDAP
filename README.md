@@ -5,11 +5,13 @@ This can run over an encrypted connection as well. To use `TLS`, make sure to ad
 panic: LDAP Result Code 200 "": x509: certificate is valid for example1.domain.com, example2.domain.com, EXAMPLE, not examples.domains.com
 ```
 
-##### How to export the crt from windows server, if at all required:
+##### How to export the crt from windows server:
 
 ```
 certutil  -ca.cert ca_name.cer > ca.crt
 ```
+
+This pem file can be copied over to the openldap server, and the path to this file can be mentioned in the ldapsync.ini file to create a custom cert pool, so the DialTLS wouldn't panic with a `certificate signed by unknown authority` error.
 #### How to:
 ##### install:
 ```
