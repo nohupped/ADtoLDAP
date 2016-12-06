@@ -1,5 +1,27 @@
 # ADtoLDAP
 This program will gather results from Active Directory, or another openldap server based on the attributes specified in /etc/ldapsync.ini, and sync it to the second ldap server. For Active directory to LDAP syncing, we need to make sure that the schema of the openldap server is prepared to accomodate the additional attibutes AD incorporates, if we are syncing them. (an example would be the `memberOf:` attribute) Better - omit those unless required.
+This can run over an encrypted connection as well. 
+
+To use `TLS`, make sure to add the domain name for which the AD certificate is generated. If that fails, the program panics throwing 
+
+```
+panic: LDAP Result Code 200 "": x509: certificate is valid for example1.domain.com, example2.domain.com, EXAMPLE, not examples.domains.com
+```
+
+Using `TLS` will make it hard for decrypting the data transferred over wire. Without using TLS, the data can be viewed with a packet capturing program like tcpdump like
+```
+tcpdump -v -XX
+```
+####Requirements to set up TLS connection:
+
+##### Get the pem file from the AD server:
+From the windows server cmd, do 
+```
+certutil  -ca.cert ca_name.cer > ca.crt
+```
+This will generate the pem file, and will be saved in the working directory by the name ca.crt.
+This pem file must be copied over from the master/AD server to the slave/openldap server, and the path to this file must be mentioned in the ldapsync.ini file to create a custom cert pool and use it as the Root CAs, so the DialTLS wouldn't panic with a `certificate signed by unknown authority` error.
+
 
 #### How to:
 ##### install:
@@ -12,7 +34,7 @@ gcc  -W -Wall ./main.c ./src/ForkSelf.c -o daemonizer
 ```
 The program can be daemonized as 
 ```
-<path/to>/daemonizer <path/to>/ADtoLDAP --sync
+<path/to>/daemonizer <path/to>/ADtoLDAP
 ```
 
 Enable `memberOf` attribute in ldap (required only if we are syncing it), to accomodate the equivalent AD field, by using the 3 ldif files included in the repo.
@@ -26,13 +48,21 @@ ldapadd -Q -Y EXTERNAL -H ldapi:/// -f 2refint.ldif
 
 ##### The permission of /etc/ldapsync.ini
 
-The program checks if the file permissions for /etc/ldapsync.ini are too broad. If it is not 600, the program will report that, and will not start. This is checked to prevent a non-privileged read of the username and password used to bind to both the servers, which are stored in this configuration file.  
+The program checks if the file permissions for /etc/ldapsync.ini are too broad. If it is not 600, the program will report that, and will not start. This is checked to prevent a non-privileged read of the username and password used to bind to both the servers, which are stored in this configuration file. This can be over-ridden by running the program with the flag `--safe=false`.
 
 ##### Sample /etc/ldapsync.ini file for syncing from Active directory to an openldap server):
 ```
 [ADServer]
 ADHost = <AD Server IP>
+#ADPort = 636 for ssl
 ADPort = 389
+UseTLS = true
+# set InsecureSkipVerify to true for testing, to accept the certificate without any verification.
+InsecureSkipVerify = false
+#CRTValidFor will not be honored if InsecureSkipVerify is set to true.
+CRTValidFor = example1.domain.com
+#Path to the pem file. Will not be honored if InsecureSkipVerify is set to true.
+CRTPath = /etc/ldap.crt
 #Page the result size to prevent possible OOM error and crash
 ADPage = 500
 #AD Connection Timeout in seconds (Defaults to 10)
@@ -75,14 +105,20 @@ sleepTime = 5
 ```
 Do the initial run which will do the initial population 
 
-`./go-sync --init`
+`./ADtoLDAP --safe=false --sync=once --configfile=/etc/ldapsync.ini`
+
+--safe=false will omit the config file permission checking.
+--sync=once will do the initial run once and will exit.
 
 The results can be verified, before the sync can be run continuously
 
-`./go-sync --sync`
+`./ADtoLDAP`
 
-This is not daemonised from within (see http://stackoverflow.com/questions/10067295/how-to-start-a-go-program-as-a-daemon-in-ubuntu) and has to use an upstart or init script.
+The default options are:
 
+--safe=true is the default behaviour, so the program will verify the config file's permission to make sure it is non-readable by groups and others.
+--sync=daemon will continuously run the program in foreground only (see http://stackoverflow.com/questions/10067295/how-to-start-a-go-program-as-a-daemon-in-ubuntu). Use the daemonizer to daemonize it.
+--config-file, if not specified, takes the default path to look for, as `/etc/ldapsync.ini`. This can be over-ridden with this argument.
 
 ##### Sample /etc/ldapsync.ini for syncing from one openldap server to another openldap server
 

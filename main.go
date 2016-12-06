@@ -3,48 +3,58 @@ package main
 
 import (
 	"os/user"
-	"fmt"
+//	"fmt"
 	"os"
 //	"ADtoLDAP/gosyncmodules"
 	"github.com/nohupped/ADtoLDAP/gosyncmodules"
 	"reflect"
 //	"os/signal"
-	"github.com/nohupped/ldap" //using a forked version that includes custom methods to retrieve and edit *AddRequest struct.
+	"gopkg.in/ldap.v2"
 	"time"
 	"runtime"
+	"flag"
 //	"bytes"
 //	"runtime/pprof"
 )
 
-func init()  {
-	if len(os.Args) == 1 {
-		fmt.Println("Usage:\n\t", os.Args[0],
-			"--init to do an init run to freshly populate ldap",
-			"from AD. Caution, this can overwrite data. \n\t", os.Args[0],
-			"--sync to keep monitoring the changes and sync")
-		os.Exit(1)
-	}
+/*func init()  {
 
-/*	c := make(chan os.Signal, 1)
+	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 	go func(){
 		for sig := range c {
 			fmt.Println(sig.String(), "received, terminating.")
 			os.Exit(1)
 		}
-	}()*/
-}
+	}()
+}*/
 
 func main() {
+
+	// Initialize logger
 	logfileMain := "/var/log/ldapsync.log"
-	//TAG := gosyncmodules.RandomGen(5)
 	username, err := user.Current()
 	gosyncmodules.CheckForError(err)
 	loggerMain := gosyncmodules.StartLog(logfileMain, username)
 	defer loggerMain.Close()
-	configFile := "/etc/ldapsync.ini"
-	gosyncmodules.CheckPerm(configFile)
-	config, err := gosyncmodules.GetConfig(configFile)
+
+	// Flags
+	checkSafety := flag.Bool("safe", true, "Set it to false to skip config file securitycheck")
+	syncrun := flag.String("sync", "daemon", "Set it to \"once\" for a single run, and \"daemon\" to run it continuously")
+	configFile := flag.String("configfile", "/etc/ldapsync.ini", "Path to the config file")
+	flag.Parse()
+
+
+	gosyncmodules.Info.Println("safe option set to", *checkSafety)
+	gosyncmodules.Info.Println("Config file is, ", *configFile)
+
+
+	if *checkSafety == true {
+		gosyncmodules.CheckPerm(*configFile)
+	} else {
+		gosyncmodules.Info.Println("Skipping file permission check on", *configFile)
+	}
+	config, err := gosyncmodules.GetConfig(*configFile)
 	gosyncmodules.CheckForError(err)
 
 	//AD Variables
@@ -53,6 +63,14 @@ func main() {
 	ADHost, err := ADGlobal.GetKey("ADHost")
 	gosyncmodules.CheckForError(err)
 	ADPort, err := ADGlobal.GetKey("ADPort")
+	gosyncmodules.CheckForError(err)
+	ADUseTLS, err := ADGlobal.GetKey("UseTLS")
+	gosyncmodules.CheckForError(err)
+	ADCrtValidFor, err := ADGlobal.GetKey("CRTValidFor")
+	gosyncmodules.CheckForError(err)
+	ADCrtPath, err := ADGlobal.GetKey("CRTPath")
+	gosyncmodules.CheckForError(err)
+	ADCRTInsecureSkipVerify, err := ADGlobal.GetKey("InsecureSkipVerify")
 	gosyncmodules.CheckForError(err)
 	ADPage, err := ADGlobal.GetKey("ADPage")
 	gosyncmodules.CheckForError(err)
@@ -79,6 +97,14 @@ func main() {
 	LDAPHost, err := LDAPGlobal.GetKey("LDAPHost")
 	gosyncmodules.CheckForError(err)
 	LDAPPort, err := LDAPGlobal.GetKey("LDAPPort")
+	gosyncmodules.CheckForError(err)
+	LDAPUseTLS, err := LDAPGlobal.GetKey("UseTLS")
+	gosyncmodules.CheckForError(err)
+	LDAPCrtValidFor, err := LDAPGlobal.GetKey("CRTValidFor")
+	gosyncmodules.CheckForError(err)
+	LDAPCrtPath, err := LDAPGlobal.GetKey("CRTPath")
+	gosyncmodules.CheckForError(err)
+	LDAPCRTInsecureSkipVerify, err := LDAPGlobal.GetKey("InsecureSkipVerify")
 	gosyncmodules.CheckForError(err)
 	LDAP_Port := LDAPPort.MustString("389")
 	LDAPPage, err := LDAPGlobal.GetKey("LDAPPage")
@@ -128,19 +154,16 @@ func main() {
 	gosyncmodules.Info.Println("LDAPAttr: ", LDAPAttribute)
 	gosyncmodules.Info.Println("LDAPFilter: ", LDAPFilter)
 	var howtorun string
-	if os.Args[1] == "--init" {
+	if *syncrun == "once" {
 		howtorun = "init"
-	} else if os.Args[1] == "--sync" {
+	} else if *syncrun == "daemon" {
 		howtorun = "sync"
 	} else {
-		fmt.Println("Usage:\n\t", os.Args[0],
-			"--init to do an init run to freshly populate ldap",
-			"from AD. Caution, if there is data already populated in ldap,\n\t\t",
-			"you may have to wipe it clean before doing init. \n\t", os.Args[0],
-			"--sync to keep monitoring the changes and sync")
+
+		flag.PrintDefaults()
 		os.Exit(1)
 	}
-	gosyncmodules.Info.Println("Starting script with", howtorun, "parameter")
+	gosyncmodules.Info.Println("Starting script with", *syncrun, "parameter")
 
 	if howtorun == "init" {
 		shutdownChannel := make(chan string)
@@ -154,13 +177,16 @@ func main() {
 		gosyncmodules.Info.Println("Created channel of type", reflect.TypeOf(ADElementsChan))
 
 		go gosyncmodules.InitialrunAD(ADHost.String(), AD_Port, ADUsername.String(), ADPassword.String(),
-			ADBaseDN.String(), ADFilter.String(), ADAttribute, ADPage.MustInt(500), ADConnTimeOut.MustInt(10), shutdownChannel, ADElementsChan)
+			ADBaseDN.String(), ADFilter.String(), ADAttribute, ADPage.MustInt(500), ADConnTimeOut.MustInt(10),
+			ADUseTLS.MustBool(true), ADCRTInsecureSkipVerify.MustBool(false),
+			ADCrtValidFor.String(), ADCrtPath.String(), shutdownChannel, ADElementsChan)
 		ADElements := <- ADElementsChan		//Finished retriving AD results
 		gosyncmodules.Info.Println(<-shutdownChannel)	//Finished reading from Blocking channel
 
 		gosyncmodules.InitialrunLDAP(LDAPHost.String(), LDAP_Port, LDAPUsername.String(), LDAPPassword.String(),
-			LDAPBaseDN.String(), LDAPFilter.String(), LDAPAttribute, LDAPPage.MustInt(500), LDAPConnTimeOut.MustInt(10), ADElements,
-			ReplaceAttributes, MapAttributes)
+			LDAPBaseDN.String(), LDAPFilter.String(), LDAPAttribute, LDAPPage.MustInt(500), LDAPConnTimeOut.MustInt(10),
+			LDAPUseTLS.MustBool(true), LDAPCrtValidFor.String(), LDAPCrtPath.String(), LDAPCRTInsecureSkipVerify.MustBool(false),
+			ADElements, ReplaceAttributes, MapAttributes)
 
 		gosyncmodules.Info.Println("Received", reflect.TypeOf(ADElementsChan), "from child thread, and has ", len(*ADElements), "elements")
 
@@ -185,11 +211,13 @@ func main() {
 
 			go gosyncmodules.SyncrunLDAP(LDAPHost.String(), LDAP_Port, LDAPUsername.String(), LDAPPassword.String(),
 					LDAPBaseDN.String(), LDAPFilter.String(), LDAPAttribute, LDAPPage.MustInt(500),
-					LDAPConnTimeOut.MustInt(10), shutdownChannel, LDAPElementsChan, LdapConnectionChan,
+					LDAPConnTimeOut.MustInt(10), LDAPUseTLS.MustBool(true), LDAPCRTInsecureSkipVerify.MustBool(false),
+					LDAPCrtValidFor.String(), LDAPCrtPath.String(), shutdownChannel, LDAPElementsChan, LdapConnectionChan,
 					ReplaceAttributes, MapAttributes)
 			go gosyncmodules.InitialrunAD(ADHost.String(), AD_Port, ADUsername.String(), ADPassword.String(),
 				ADBaseDN.String(), ADFilter.String(), ADAttribute, ADPage.MustInt(500),
-				ADConnTimeOut.MustInt(10), shutdownChannel, ADElementsChan)
+				ADConnTimeOut.MustInt(10), ADUseTLS.MustBool(true), ADCRTInsecureSkipVerify.MustBool(false),
+				ADCrtValidFor.String(), ADCrtPath.String(), shutdownChannel, ADElementsChan)
 			ADElements := <- ADElementsChan
 			LDAPElements := <- LDAPElementsChan
 			LDAPConnection := <- LdapConnectionChan
@@ -251,7 +279,7 @@ func main() {
 			close(ADElementsChan)
 			close(LDAPElementsChan)
 			gosyncmodules.Info.Println("Sleeping for", Delay.MustInt(5), "seconds, and iterating again...")
-			gosyncmodules.Info.Println("Current active goroutines: ", runtime.NumGoroutine())
+			gosyncmodules.Info.Println("Currently active goroutines: ", runtime.NumGoroutine())
 			//Thanks to profiling, that helped finding a goroutine leak.
 			/*buf1 := new(bytes.Buffer)
 			pprof.Lookup("goroutine").WriteTo(buf1, 1)
