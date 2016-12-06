@@ -5,8 +5,8 @@ import (
 	"os/user"
 //	"fmt"
 	"os"
-	"ADtoLDAP/gosyncmodules"
-//	"github.com/nohupped/ADtoLDAP/gosyncmodules"
+//	"ADtoLDAP/gosyncmodules"
+	"github.com/nohupped/ADtoLDAP/gosyncmodules"
 	"reflect"
 //	"os/signal"
 	"gopkg.in/ldap.v2"
@@ -98,6 +98,14 @@ func main() {
 	gosyncmodules.CheckForError(err)
 	LDAPPort, err := LDAPGlobal.GetKey("LDAPPort")
 	gosyncmodules.CheckForError(err)
+	LDAPUseTLS, err := LDAPGlobal.GetKey("UseTLS")
+	gosyncmodules.CheckForError(err)
+	LDAPCrtValidFor, err := LDAPGlobal.GetKey("CRTValidFor")
+	gosyncmodules.CheckForError(err)
+	LDAPCrtPath, err := LDAPGlobal.GetKey("CRTPath")
+	gosyncmodules.CheckForError(err)
+	LDAPCRTInsecureSkipVerify, err := LDAPGlobal.GetKey("InsecureSkipVerify")
+	gosyncmodules.CheckForError(err)
 	LDAP_Port := LDAPPort.MustString("389")
 	LDAPPage, err := LDAPGlobal.GetKey("LDAPPage")
 	gosyncmodules.CheckForError(err)
@@ -171,13 +179,14 @@ func main() {
 		go gosyncmodules.InitialrunAD(ADHost.String(), AD_Port, ADUsername.String(), ADPassword.String(),
 			ADBaseDN.String(), ADFilter.String(), ADAttribute, ADPage.MustInt(500), ADConnTimeOut.MustInt(10),
 			ADUseTLS.MustBool(true), ADCRTInsecureSkipVerify.MustBool(false),
-			ADCrtValidFor.String(), ADCrtPath.MustString("/etc/ldap.crt"), shutdownChannel, ADElementsChan)
+			ADCrtValidFor.String(), ADCrtPath.String(), shutdownChannel, ADElementsChan)
 		ADElements := <- ADElementsChan		//Finished retriving AD results
 		gosyncmodules.Info.Println(<-shutdownChannel)	//Finished reading from Blocking channel
 
 		gosyncmodules.InitialrunLDAP(LDAPHost.String(), LDAP_Port, LDAPUsername.String(), LDAPPassword.String(),
-			LDAPBaseDN.String(), LDAPFilter.String(), LDAPAttribute, LDAPPage.MustInt(500), LDAPConnTimeOut.MustInt(10), ADElements,
-			ReplaceAttributes, MapAttributes)
+			LDAPBaseDN.String(), LDAPFilter.String(), LDAPAttribute, LDAPPage.MustInt(500), LDAPConnTimeOut.MustInt(10),
+			LDAPUseTLS.MustBool(true), LDAPCrtValidFor.String(), LDAPCrtPath.String(), LDAPCRTInsecureSkipVerify.MustBool(false),
+			ADElements, ReplaceAttributes, MapAttributes)
 
 		gosyncmodules.Info.Println("Received", reflect.TypeOf(ADElementsChan), "from child thread, and has ", len(*ADElements), "elements")
 
@@ -202,12 +211,13 @@ func main() {
 
 			go gosyncmodules.SyncrunLDAP(LDAPHost.String(), LDAP_Port, LDAPUsername.String(), LDAPPassword.String(),
 					LDAPBaseDN.String(), LDAPFilter.String(), LDAPAttribute, LDAPPage.MustInt(500),
-					LDAPConnTimeOut.MustInt(10), shutdownChannel, LDAPElementsChan, LdapConnectionChan,
+					LDAPConnTimeOut.MustInt(10), LDAPUseTLS.MustBool(true), LDAPCRTInsecureSkipVerify.MustBool(false),
+					LDAPCrtValidFor.String(), LDAPCrtPath.String(), shutdownChannel, LDAPElementsChan, LdapConnectionChan,
 					ReplaceAttributes, MapAttributes)
 			go gosyncmodules.InitialrunAD(ADHost.String(), AD_Port, ADUsername.String(), ADPassword.String(),
 				ADBaseDN.String(), ADFilter.String(), ADAttribute, ADPage.MustInt(500),
 				ADConnTimeOut.MustInt(10), ADUseTLS.MustBool(true), ADCRTInsecureSkipVerify.MustBool(false),
-				ADCrtValidFor.String(), ADCrtPath.MustString("/etc/ldap.crt"), shutdownChannel, ADElementsChan)
+				ADCrtValidFor.String(), ADCrtPath.String(), shutdownChannel, ADElementsChan)
 			ADElements := <- ADElementsChan
 			LDAPElements := <- LDAPElementsChan
 			LDAPConnection := <- LdapConnectionChan
