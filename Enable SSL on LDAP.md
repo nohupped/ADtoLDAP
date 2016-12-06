@@ -1,7 +1,7 @@
 # Enable SSL on an openldap server. 
 
 (Referenced from https://www.server-world.info/en/note?os=Debian_8&p=openldap&f=4)
-
+```
 ### Generate Certificate:
 root@dlp:~# cd /etc/ssl/private 
 root@dlp:/etc/ssl/private# openssl genrsa -aes128 -out server.key 2048 
@@ -41,7 +41,7 @@ Signature ok
 subject=/C=IN/ST=SomeState/L=SomeState/O=SomeCompany/OU=SomeOU/CN=mycompany.example.com/emailAddress=nohupped@gmail.com
 Getting Private key
 root@dlp:/etc/ssl/private# chmod 400 server.*
-
+```
 ### Configure LDAP over TLS to make connection be secure
 
 The mod_ssl.ldif file mentioned below is attached inside the `ldifs` directory.
