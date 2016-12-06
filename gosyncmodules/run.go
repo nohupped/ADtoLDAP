@@ -12,9 +12,9 @@ func InitialrunAD(ADHost, AD_Port, ADUsername, ADPassword, ADBaseDN, ADFilter st
 	Info.Println("Connecting to AD", ADHost)
 	var connectAD *ldap.Conn
 	if UseTLS == false {
-		connectAD = ConnectToAD(ADHost, AD_Port, ADUsername, ADPassword, ADConnTimeout)
+		connectAD = ConnectToDirectoryServer(ADHost, AD_Port, ADUsername, ADPassword, ADConnTimeout)
 	} else  {
-		connectAD = ConnectToADTLS(ADHost, AD_Port, ADUsername, ADPassword, ADConnTimeout, InsecureSkipVerify, CRTValidFor, ADCrtPath)
+		connectAD = ConnectToDirectoryServerTLS(ADHost, AD_Port, ADUsername, ADPassword, ADConnTimeout, InsecureSkipVerify, CRTValidFor, ADCrtPath)
 	}
 	defer func() {shutdownChannel <- "Done from func InitialrunAD"}()
 	defer Info.Println("closed")
@@ -34,7 +34,7 @@ func InitialrunAD(ADHost, AD_Port, ADUsername, ADPassword, ADBaseDN, ADFilter st
 func InitialrunLDAP(LDAPHost, LDAP_Port, LDAPUsername, LDAPPassword, LDAPBaseDN, LDAPFilter string, LDAPAttribute []string,
 	LDAPPage int, LDAPConnTimeout int, ADElements *[]LDAPElement, ReplaceAttributes, MapAttributes *ini.Section)  {
 	Info.Println("Received", len(*ADElements), "elements to populate ldap")
-	connectLDAP := ConnectToLdap(LDAPHost, LDAP_Port, LDAPUsername, LDAPPassword, LDAPConnTimeout)
+	connectLDAP := ConnectToDirectoryServer(LDAPHost, LDAP_Port, LDAPUsername, LDAPPassword, LDAPConnTimeout)
 	InitialPopulateToLdap(ADElements, connectLDAP, ReplaceAttributes, MapAttributes, false)
 	defer Info.Println("closed")
 	defer connectLDAP.Close()
@@ -48,7 +48,7 @@ func SyncrunLDAP(LDAPHost, LDAP_Port, LDAPUsername, LDAPPassword, LDAPBaseDN, LD
 			LDAPElementsChan chan *[]LDAPElement, LdapConnectionChan chan *ldap.Conn,
 			ReplaceAttributes, MapAttributes *ini.Section)  {
 	Info.Println("Connecting to LDAP", LDAPHost)
-	connectLDAP := ConnectToLdap(LDAPHost, LDAP_Port, LDAPUsername, LDAPPassword, LDAPConnTimeout)
+	connectLDAP := ConnectToDirectoryServer(LDAPHost, LDAP_Port, LDAPUsername, LDAPPassword, LDAPConnTimeout)
 	defer func() {shutdownChannel <- "Done from func syncrunLDAP"}()
 	LDAPElements := GetFromLDAP(connectLDAP, LDAPBaseDN, LDAPFilter, LDAPAttribute, uint32(LDAPPage))
 	//Comment below to log ldapelements
