@@ -1,0 +1,10 @@
+dn: cn=config
+changetype: modify
+add: olcTLSCACertificateFile
+olcTLSCACertificateFile: /etc/ldap/sasl2/ca-certificates.crt
+-
+replace: olcTLSCertificateFile
+olcTLSCertificateFile: /etc/ldap/sasl2/server.crt
+-
+replace: olcTLSCertificateKeyFile
+olcTLSCertificateKeyFile: /etc/ldap/sasl2/server.key

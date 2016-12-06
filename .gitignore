@@ -10,6 +10,7 @@
 !*.h
 !*.py
 !*.gitignore
+!*.md
 
 /Daemonizer/build/
 /Daemonizer/dist/
