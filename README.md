@@ -54,14 +54,14 @@ The program checks if the file permissions for /etc/ldapsync.ini are too broad. 
 ```
 [ADServer]
 ADHost = <AD Server IP>
-#ADPort = 636 for ssl
-ADPort = 389
+#ADPort = 389 for non ssl and 636 for ssl
+ADPort = 636
 UseTLS = true
 # set InsecureSkipVerify to true for testing, to accept the certificate without any verification.
 InsecureSkipVerify = false
 #CRTValidFor will not be honored if InsecureSkipVerify is set to true.
 CRTValidFor = example1.domain.com
-#Path to the pem file. Will not be honored if InsecureSkipVerify is set to true.
+#Path to the pem file, which is used to create the custom CA pool. Will not be honored if InsecureSkipVerify is set to true.
 CRTPath = /etc/ldap.crt
 #Page the result size to prevent possible OOM error and crash
 ADPage = 500
@@ -77,7 +77,11 @@ filter = (cn=*)
 
 [LDAPServer]
 LDAPHost = <ldap server ip>
-LDAPPort = 389
+LDAPPort = 636
+UseTLS = true
+InsecureSkipVerify = false
+CRTValidFor = ldapserver.example.com
+CRTPath = /etc/ldap/sasl2/server.crt
 #Page LDAP result
 LDAPPage = 500
 #LDAP Connection Timeout in seconds (Defaults to 10)
@@ -125,7 +129,14 @@ The default options are:
 ```
 [ADServer]
 ADHost = <LDAP server1 IP>
-ADPort = 389
+ADPort = 636
+UseTLS = true
+# set InsecureSkipVerify to true for testing, to accept the certificate without any verification.
+InsecureSkipVerify = false
+#CRTValidFor will not be honored if InsecureSkipVerify is set to true.
+CRTValidFor = example1.domain.com
+#Path to the pem file, which is used to create the custom CA pool. Will not be honored if InsecureSkipVerify is set to true.
+CRTPath = /etc/ldap.crt
 #Page the result size to prevent possible OOM error and crash
 ADPage = 500
 #AD Connection Timeout in seconds (Defaults to 10)
@@ -141,7 +152,11 @@ filter = (cn=*)
 
 [LDAPServer]
 LDAPHost = 127.0.0.1
-LDAPPort = 389
+LDAPPort = 636
+UseTLS = true
+InsecureSkipVerify = false
+CRTValidFor = ldapserver.example.com
+CRTPath = /etc/ldap/sasl2/server.crt
 #Page LDAP result
 LDAPPage = 500
 #LDAP Connection Timeout in seconds (Defaults to 10)
