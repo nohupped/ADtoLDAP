@@ -1,5 +1,5 @@
 # ADtoLDAP
-This program will gather results from Active Directory, or another openldap server based on the attributes specified in /etc/ldapsync.ini, and sync it to the second ldap server. For Active directory to LDAP syncing, we need to make sure that the schema of the openldap server is prepared to accomodate the additional attibutes AD incorporates, if we are syncing them. (an example would be the `memberOf:` attribute) Better - omit those unless required.
+This program will gather results from Active Directory, or another openldap server based on the attributes specified in /etc/ldapsync.ini, and sync it to the second ldap server. The `basedn` which must be synced from, for eg:`basedn = ou=someOu,dc=example,dc=com` in the sample configuration below must be created on the destination server to acommodate the sync. For Active directory to LDAP syncing, we need to make sure that the schema of the openldap server is prepared to accomodate the additional attibutes AD incorporates, if we are syncing them. (an example would be the `memberOf:` attribute) Better - omit those unless required.
 This can run over an encrypted connection as well. 
 
 To use `TLS`, make sure to add the domain name for which the AD certificate is generated. If that fails, the program panics throwing 
