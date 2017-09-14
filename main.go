@@ -32,17 +32,19 @@ import (
 func main() {
 
 	// Initialize logger
-	logfileMain := "/var/log/ldapsync.log"
-	username, err := user.Current()
-	gosyncmodules.CheckForError(err)
-	loggerMain := gosyncmodules.StartLog(logfileMain, username)
-	defer loggerMain.Close()
+
 
 	// Flags
 	checkSafety := flag.Bool("safe", true, "Set it to false to skip config file securitycheck")
 	syncrun := flag.String("sync", "daemon", "Set it to \"once\" for a single run, and \"daemon\" to run it continuously")
 	configFile := flag.String("configfile", "/etc/ldapsync.ini", "Path to the config file")
+	logfile := flag.String("logfile", "/var/log/ldapsync.log", "Path to log file. Defaults to /var/log/ldapsync.log")
 	flag.Parse()
+
+	username, err := user.Current()
+	gosyncmodules.CheckForError(err)
+	loggerMain := gosyncmodules.StartLog(*logfile, username)
+	defer loggerMain.Close()
 
 
 	gosyncmodules.Info.Println("safe option set to", *checkSafety)
