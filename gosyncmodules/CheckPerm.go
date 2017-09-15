@@ -4,12 +4,30 @@ import (
 	"fmt"
 	"unsafe"
 	"os"
+	"os/user"
+	"strconv"
 )
 //#include <sys/stat.h>
 //#include <stdlib.h>
 import "C"
 
 func CheckPerm(filename string) {
+	current_uid := os.Getuid()
+	current_gid := os.Getgid()
+	username, err := user.LookupId(strconv.Itoa(current_uid))
+	var current_username string
+	var current_groupname string
+	if err != nil{
+		current_username= "<Couldn't lookup username>"
+	}
+	groupname, err := user.LookupGroupId(strconv.Itoa(current_gid))
+	if err != nil {
+		current_groupname = "<Couldn't lookup groupname>"
+
+	}
+	current_username = username.Username
+	current_groupname = groupname.Name
+
 	Info.Println("using cgo to perform security check on ", filename)
 	statstruct := C.stat //stat struct from C
 	Info.Println("Initiated stat struct")
@@ -21,9 +39,9 @@ func CheckPerm(filename string) {
 	C.stat(path, &st)
 	uid := st.st_uid
 	gid := st.st_gid
-	if uid != 0 || gid != 0 {
-		fmt.Println(filename, "not owned by root. Make it owned by root, and make it non-readable to groups and others.")
-		Info.Println(filename, "not owned by root. Make it owned by root, and make it non-readable to groups and others.")
+	if int(uid) != current_uid || int(gid) != current_gid {
+		fmt.Printf("%s not owned by uid=%d(%s) or gid=%d(%s). Do chown %d:%d %s\n", filename, current_uid, current_username, current_gid, current_groupname, current_uid, current_gid, filename )
+		Info.Printf("%s not owned by uid=%d(%s) or gid=%d(%s). Do chown %d:%d %s\n", filename, current_uid, current_username, current_gid, current_groupname, current_uid, current_gid, filename )
 		os.Exit(1)
 	}
 	if st.st_mode & C.S_IRGRP > 0 || st.st_mode & C.S_IWGRP > 0 || st.st_mode & C.S_IXGRP > 0 ||
