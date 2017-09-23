@@ -14,10 +14,10 @@ import (
 // eg: tcpdump -v -XX
 func ConnectToDirectoryServer(Host, Port string, Username, Password string, ConnTimeout int) (*ldap.Conn){
 	ldap.DefaultTimeout = time.Duration(ConnTimeout) * time.Second
-	Info.Println("Set AD connection timeout to", ldap.DefaultTimeout)
+	logger.Debugln("Set AD connection timeout to", ldap.DefaultTimeout)
 	l, err := ldap.Dial("tcp", fmt.Sprintf("%s:%s", Host, Port))
 	CheckForError(err)
-	Info.Println("Binding")
+	logger.Debugln("Binding")
 	err = l.Bind(Username, Password)
 	CheckForError(err)
 	return l
@@ -30,7 +30,7 @@ func ConnectToDirectoryServer(Host, Port string, Username, Password string, Conn
 func ConnectToDirectoryServerTLS(Host, Port string, Username, Password string, ConnTimeout int, CRTInsecureSkipVerify bool,
 CRTValidFor, CRTPath string) (*ldap.Conn) {
 	ldap.DefaultTimeout = time.Duration(ConnTimeout) * time.Second
-	Info.Println("Set AD connection timeout to", ldap.DefaultTimeout)
+	logger.Debugln("Set AD connection timeout to", ldap.DefaultTimeout)
 	tlsconfig := new(tls.Config)
 
 	if CRTInsecureSkipVerify == false {
@@ -39,8 +39,8 @@ CRTValidFor, CRTPath string) (*ldap.Conn) {
 		tlsconfig = tlsconfigSkipVerify(CRTInsecureSkipVerify)
 	}
 
-	Info.Printf("Dialling TLS with config %+v\n", *tlsconfig)
-	Info.Println("Nested structs like tls.Config.RootCAs are not logged.")
+	logger.Debugf("Dialling TLS with config %+v\n", *tlsconfig)
+	logger.Debugf("Nested structs like tls.Config.RootCAs are not logged.")
 	l, err := ldap.DialTLS("tcp", fmt.Sprintf("%s:%s", Host, Port), tlsconfig)
 	CheckForError(err)
 	err = l.Bind(Username, Password)

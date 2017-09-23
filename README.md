@@ -106,18 +106,26 @@ member = memberUid
 [Sync]
 #Add sleep time after each successful sync, in seconds.
 sleepTime = 5
+# loglevel can be set to either of
+#   ErrorLevel = iota // 0
+#   WarnLevel // 1
+#   InfoLevel // 2
+#   DebugLevel // 3
+# Uncomment the below line and set to desired value. Defaults to DebugLevel.
+# loglevel = DebugLevel
 
 ```
 Do the initial run which will do the initial population 
 
-`./ADtoLDAP --safe=false --sync=once --configfile=/etc/ldapsync.ini`
+`./ADtoLDAP --safe=false --sync=once --configfile=/etc/ldapsync.ini --logfile=/tmp/ldapsync.log`
 
 --safe=false will omit the config file permission checking.
 --sync=once will do the initial run once and will exit.
+--logfile=<path> will write to that log file. Defaults to `/var/log/ldapsync.log`.
 
 The results can be verified, before the sync can be run continuously
 
-`./ADtoLDAP`
+`./ADtoLDAP --logfile=<writable logfile path if this is run as a non-privileged user.>`
 
 The default options are:
 
@@ -183,6 +191,13 @@ groupObjectClass = top,posixGroup
 [Sync]
 #Add sleep time after each successful sync, in seconds.
 sleepTime = 60
+# loglevel can be set to either of
+#   ErrorLevel = iota // 0
+#   WarnLevel // 1
+#   InfoLevel // 2
+#   DebugLevel // 3
+# Uncomment the below line and set to desired value. Defaults to DebugLevel.
+# loglevel = DebugLevel
 
 ```
 

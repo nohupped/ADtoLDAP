@@ -34,7 +34,7 @@ func memberTomemberUid(member *interface{}, fullmap *[]LDAPElement)  []string{
 		}
 
 	}
-	Info.Println("retrieved members as ", uids)
+	logger.Debugln("retrieved members as ", uids)
 	return uids
 
 }

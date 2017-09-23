@@ -20,9 +20,9 @@ func InitialPopulateToLdap(ADElements *[]LDAPElement, connectLDAP *ldap.Conn,
 		mapping[i] = tmpvar.String()
 	} //keys = AD attributes, values = ldap values to which it would be mapped
 
-	Info.Println("Creating mappings for the following attributes,", mapping)
-	Info.Println("Userobjectclass of AD will be replaced with", userObjectClass)
-	Info.Println("Groupobjectclass of AD will be replaced with", groupObjectClass)
+	logger.Debugln("Creating mappings for the following attributes,", mapping)
+	logger.Debugln("Userobjectclass of AD will be replaced with", userObjectClass)
+	logger.Debugln("Groupobjectclass of AD will be replaced with", groupObjectClass)
 	for _, i := range *ADElements {
 		//fmt.Println(i.DN)
 		Add := ldap.NewAddRequest(i.DN)
@@ -64,7 +64,7 @@ func InitialPopulateToLdap(ADElements *[]LDAPElement, connectLDAP *ldap.Conn,
 //		Info.Println(Add)
 		if ReturnData == false {
 			err := connectLDAP.Add(Add)
-			Error.Println(err)
+			logger.Errorln(err)
 		} else {
 			ReturnConvertedData = append(ReturnConvertedData, Add)
 		}
