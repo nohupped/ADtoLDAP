@@ -20,6 +20,7 @@ type RuntimeConfig struct {
 	ReplaceAttributes, MapAttributes *ini.Section
 	Delay                            int
 	LogLevel                         string
+	BaseDNMapping					 map[string]string
 }
 
 type DS struct {
@@ -66,6 +67,7 @@ func NewRuntimeConfig(path string) *RuntimeConfig {
 	} else {
 		logger.Warnln("Loglevel not defined in config", path, ". Using system-set DEBUG level.")
 	}
+	r.BaseDNMapping[r.ADServer.BaseDN] = r.LDAPServer.BaseDN
 
 	return r
 }
