@@ -8,54 +8,53 @@ import (
 )
 
 func InitialrunAD(ADHost, AD_Port, ADUsername, ADPassword, ADBaseDN, ADFilter string, ADAttribute []string,
-	ADPage int, ADConnTimeout int, UseTLS bool, InsecureSkipVerify bool, CRTValidFor, ADCrtPath string, shutdownChannel chan string, ADElementsChan chan *[]LDAPElement)  {
-	Info.Println("Connecting to AD", ADHost)
+	ADPage int, ADConnTimeout int, UseTLS bool, InsecureSkipVerify bool, CRTValidFor, ADCrtPath string, shutdownChannel chan string, ADElementsChan chan *[]LDAPElement) {
+	logger.Infoln("Connecting to AD", ADHost)
 	var connectAD *ldap.Conn
 	if UseTLS == false {
 		connectAD = ConnectToDirectoryServer(ADHost, AD_Port, ADUsername, ADPassword, ADConnTimeout)
-	} else  {
+	} else {
 		connectAD = ConnectToDirectoryServerTLS(ADHost, AD_Port, ADUsername, ADPassword, ADConnTimeout, InsecureSkipVerify, CRTValidFor, ADCrtPath)
 	}
-	defer func() {shutdownChannel <- "Done from func InitialrunAD"}()
-	defer Info.Println("closed")
+	defer func() { shutdownChannel <- "Done from func InitialrunAD" }()
+	defer logger.Infoln("closed")
 	defer connectAD.Close()
-	defer Info.Println("Closing connection")
+	defer logger.Infoln("Closing connection")
 	ADElements := GetFromAD(connectAD, ADBaseDN, ADFilter, ADAttribute, uint32(ADPage))
 	//fmt.Println(reflect.TypeOf(ADElements))
-//	Info.Println(ADElements)
-	Info.Println("Writing results to ", reflect.TypeOf(ADElementsChan))
-	Info.Println("Length of ", reflect.TypeOf(ADElementsChan), "is", len(*ADElements))
+	//	Info.Println(ADElements)
+	logger.Infoln("Writing results to ", reflect.TypeOf(ADElementsChan))
+	logger.Infoln("Length of ", reflect.TypeOf(ADElementsChan), "is", len(*ADElements))
 	ADElementsChan <- ADElements
-	Info.Println("Passing", reflect.TypeOf(ADElementsChan), "to Main thread")
-
+	logger.Infoln("Passing", reflect.TypeOf(ADElementsChan), "to Main thread")
 
 }
 
 func InitialrunLDAP(LDAPHost, LDAP_Port, LDAPUsername, LDAPPassword, LDAPBaseDN, LDAPFilter string, LDAPAttribute []string,
-	LDAPPage int, LDAPConnTimeout int , LDAPUseTLS bool, LDAPCrtValidFor string, LDAPCrtPath string, LDAPCRTInsecureSkipVerify bool,
-	ADElements *[]LDAPElement, ReplaceAttributes, MapAttributes *ini.Section)  {
-	Info.Println("Received", len(*ADElements), "elements to populate ldap")
+	LDAPPage int, LDAPConnTimeout int, LDAPUseTLS bool, LDAPCrtValidFor string, LDAPCrtPath string, LDAPCRTInsecureSkipVerify bool,
+	ADElements *[]LDAPElement, ReplaceAttributes, MapAttributes *ini.Section) {
+	logger.Infoln("Received", len(*ADElements), "elements to populate ldap")
 	var connectLDAP *ldap.Conn
 	if LDAPUseTLS == false {
 		connectLDAP = ConnectToDirectoryServer(LDAPHost, LDAP_Port, LDAPUsername, LDAPPassword, LDAPConnTimeout)
 	} else {
 		connectLDAP = ConnectToDirectoryServerTLS(LDAPHost, LDAP_Port, LDAPUsername, LDAPPassword, LDAPConnTimeout,
-				LDAPCRTInsecureSkipVerify, LDAPCrtValidFor, LDAPCrtPath)
+			LDAPCRTInsecureSkipVerify, LDAPCrtValidFor, LDAPCrtPath)
 	}
 
 	InitialPopulateToLdap(ADElements, connectLDAP, ReplaceAttributes, MapAttributes, false)
-	defer Info.Println("closed")
+	defer logger.Infoln("closed")
 	defer connectLDAP.Close()
-	defer Info.Println("Closing connection")
-	Info.Println("End of LDAP")
+	defer logger.Infoln("Closing connection")
+	logger.Infoln("End of LDAP")
 
 }
 
 func SyncrunLDAP(LDAPHost, LDAP_Port, LDAPUsername, LDAPPassword, LDAPBaseDN, LDAPFilter string, LDAPAttribute []string,
-			LDAPPage int, LDAPConnTimeout int, LDAPUseTLS bool, LDAPCRTInsecureSkipVerify bool, LDAPCrtValidFor string,
-			LDAPCrtPath string,  shutdownChannel chan string, LDAPElementsChan chan *[]LDAPElement,
-			LdapConnectionChan chan *ldap.Conn, ReplaceAttributes, MapAttributes *ini.Section)  {
-	Info.Println("Connecting to LDAP", LDAPHost)
+	LDAPPage int, LDAPConnTimeout int, LDAPUseTLS bool, LDAPCRTInsecureSkipVerify bool, LDAPCrtValidFor string,
+	LDAPCrtPath string, shutdownChannel chan string, LDAPElementsChan chan *[]LDAPElement,
+	LdapConnectionChan chan *ldap.Conn, ReplaceAttributes, MapAttributes *ini.Section) {
+	logger.Infoln("Connecting to LDAP", LDAPHost)
 	//connectLDAP := ConnectToDirectoryServer(LDAPHost, LDAP_Port, LDAPUsername, LDAPPassword, LDAPConnTimeout)
 	var connectLDAP *ldap.Conn
 	if LDAPUseTLS == false {
@@ -64,11 +63,11 @@ func SyncrunLDAP(LDAPHost, LDAP_Port, LDAPUsername, LDAPPassword, LDAPBaseDN, LD
 		connectLDAP = ConnectToDirectoryServerTLS(LDAPHost, LDAP_Port, LDAPUsername, LDAPPassword, LDAPConnTimeout,
 			LDAPCRTInsecureSkipVerify, LDAPCrtValidFor, LDAPCrtPath)
 	}
-	defer func() {shutdownChannel <- "Done from func syncrunLDAP"}()
+	defer func() { shutdownChannel <- "Done from func syncrunLDAP" }()
 	LDAPElements := GetFromLDAP(connectLDAP, LDAPBaseDN, LDAPFilter, LDAPAttribute, uint32(LDAPPage))
 	//Comment below to log ldapelements
 	//Info.Println(LDAPElements)
-	Info.Println("Length of ", reflect.TypeOf(LDAPElementsChan), "is", len(*LDAPElements))
+	logger.Infoln("Length of ", reflect.TypeOf(LDAPElementsChan), "is", len(*LDAPElements))
 
 	LDAPElementsChan <- LDAPElements
 	LdapConnectionChan <- connectLDAP
