@@ -2,11 +2,11 @@ package gosyncmodules
 
 import (
 	"gopkg.in/ldap.v2"
-	"sort"
 	"reflect"
+	"sort"
 )
 
-func IfDNExists(checkfor *ldap.AddRequest , checkin []*ldap.AddRequest ) (bool, *ldap.AddRequest) {
+func IfDNExists(checkfor *ldap.AddRequest, checkin []*ldap.AddRequest) (bool, *ldap.AddRequest) {
 	for _, i := range checkin {
 		if checkfor.DN == i.DN {
 			return true, i
@@ -18,7 +18,7 @@ func IfDNExists(checkfor *ldap.AddRequest , checkin []*ldap.AddRequest ) (bool, 
 
 type MapADandLDAP map[string][]string
 
-func CheckAttributes(LdapConnection *ldap.Conn, LdapEntry, ADEntry *ldap.AddRequest)  {
+func CheckAttributes(LdapConnection *ldap.Conn, LdapEntry, ADEntry *ldap.AddRequest) {
 	var ADMapAggregated []MapADandLDAP
 	var LDAPMapAggregated []MapADandLDAP
 	for _, adEntries := range ADEntry.Attributes {
@@ -29,7 +29,7 @@ func CheckAttributes(LdapConnection *ldap.Conn, LdapEntry, ADEntry *ldap.AddRequ
 		ADMapped := MapADandLDAP{adEntries.Type: adEntries.Vals}
 		ADMapAggregated = append(ADMapAggregated, ADMapped)
 	}
-	for _, ldapEntries  := range LdapEntry.Attributes {
+	for _, ldapEntries := range LdapEntry.Attributes {
 		sort.Strings(ldapEntries.Vals)
 		LDAPMapped := MapADandLDAP{ldapEntries.Type: ldapEntries.Vals}
 		LDAPMapAggregated = append(LDAPMapAggregated, LDAPMapped)
@@ -48,16 +48,16 @@ func CheckAttributes(LdapConnection *ldap.Conn, LdapEntry, ADEntry *ldap.AddRequ
 		err := LdapConnection.Del(delete)
 		if err != nil {
 			logger.Errorln(err)
-		} else {logger.Debugln(*delete, "Deleted")}
+		} else {
+			logger.Debugln(*delete, "Deleted")
+		}
 		err = LdapConnection.Add(ADEntry)
 		if err != nil {
 			logger.Debugln(err)
-		} else {logger.Debugln(*ADEntry, "Added to ldap")}
+		} else {
+			logger.Debugln(*ADEntry, "Added to ldap")
+		}
 
 	}
 
-
 }
-
-
-

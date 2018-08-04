@@ -1,8 +1,8 @@
 package gosyncmodules
 
 import (
-	"strings"
 	"reflect"
+	"strings"
 )
 
 /*
@@ -25,7 +25,7 @@ func memberTomemberUid(member *interface{}, uid *keyvalue)  []string{
 // memberTomemberUid function will populate memberUid attribute with the corresponding uid field
 // from the entire ldap request slice. Parameters are the member attribute slice which is of
 // type interface{}
-func memberTomemberUid(member *interface{}, fullmap *[]LDAPElement)  []string{
+func memberTomemberUid(member *interface{}, fullmap *[]LDAPElement) []string {
 	uids := make([]string, 0)
 	for _, members := range (*member).([]string) {
 		uid := checkMemberUIDInLDAPElements(members, fullmap)
@@ -40,10 +40,10 @@ func memberTomemberUid(member *interface{}, fullmap *[]LDAPElement)  []string{
 }
 
 //
-func checkMemberUIDInLDAPElements(members string, fullmap *[]LDAPElement) *string{
+func checkMemberUIDInLDAPElements(members string, fullmap *[]LDAPElement) *string {
 	for _, i := range *fullmap {
-		if reflect.DeepEqual(i.DN, members){
-			for _, maps := range i.attributes{
+		if reflect.DeepEqual(i.DN, members) {
+			for _, maps := range i.attributes {
 				for k, v := range maps {
 					if k == "uid" {
 						uid := strings.Join(v.([]string), "")

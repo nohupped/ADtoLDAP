@@ -2,11 +2,12 @@ package gosyncmodules
 
 import (
 	"fmt"
-	"unsafe"
 	"os"
 	"os/user"
 	"strconv"
+	"unsafe"
 )
+
 //#include <sys/stat.h>
 //#include <stdlib.h>
 import "C"
@@ -17,8 +18,8 @@ func CheckPerm(filename string) {
 	username, err := user.LookupId(strconv.Itoa(current_uid))
 	var current_username string
 	var current_groupname string
-	if err != nil{
-		current_username= "<Couldn't lookup username>"
+	if err != nil {
+		current_username = "<Couldn't lookup username>"
 	}
 	groupname, err := user.LookupGroupId(strconv.Itoa(current_gid))
 	if err != nil {
@@ -44,8 +45,8 @@ func CheckPerm(filename string) {
 		logger.Infof("%s not owned by uid=%d(%s) or gid=%d(%s). Do chown %d:%d %s\n", filename, current_uid, current_username, current_gid, current_groupname, current_uid, current_gid, filename)
 		os.Exit(1)
 	}
-	if st.st_mode & C.S_IRGRP > 0 || st.st_mode & C.S_IWGRP > 0 || st.st_mode & C.S_IXGRP > 0 ||
-		st.st_mode & C.S_IROTH > 0 || st.st_mode & C.S_IWOTH > 0 || st.st_mode & C.S_IXOTH > 0 {
+	if st.st_mode&C.S_IRGRP > 0 || st.st_mode&C.S_IWGRP > 0 || st.st_mode&C.S_IXGRP > 0 ||
+		st.st_mode&C.S_IROTH > 0 || st.st_mode&C.S_IWOTH > 0 || st.st_mode&C.S_IXOTH > 0 {
 		fmt.Println(filename, "file permission too broad, make it non-readable to groups and others.")
 		logger.Infoln(filename, "file permission too broad, make it non-readable to groups and others.")
 		os.Exit(1)

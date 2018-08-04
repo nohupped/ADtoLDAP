@@ -1,18 +1,18 @@
 package gosyncmodules
 
 import (
-	"gopkg.in/ldap.v2"
-	"fmt"
-	"time"
 	"crypto/tls"
-	"io/ioutil"
 	"crypto/x509"
+	"fmt"
+	"gopkg.in/ldap.v2"
+	"io/ioutil"
+	"time"
 )
 
 // ConnectToDirectoryServer will try to establish a connection to the directory server and return the connection
 // object. This is an un-encrypted connection, and the data transferred will be human readable if checked with tcpdump
 // eg: tcpdump -v -XX
-func ConnectToDirectoryServer(Host, Port string, Username, Password string, ConnTimeout int) (*ldap.Conn){
+func ConnectToDirectoryServer(Host, Port string, Username, Password string, ConnTimeout int) *ldap.Conn {
 	ldap.DefaultTimeout = time.Duration(ConnTimeout) * time.Second
 	logger.Debugln("Set AD connection timeout to", ldap.DefaultTimeout)
 	l, err := ldap.Dial("tcp", fmt.Sprintf("%s:%s", Host, Port))
@@ -28,7 +28,7 @@ func ConnectToDirectoryServer(Host, Port string, Username, Password string, Conn
 // to add the certificates into a cert pool and use it as the Root CAs, and set the ServerName to which
 // the certificate was issued for, from CRTValidFor.
 func ConnectToDirectoryServerTLS(Host, Port string, Username, Password string, ConnTimeout int, CRTInsecureSkipVerify bool,
-CRTValidFor, CRTPath string) (*ldap.Conn) {
+	CRTValidFor, CRTPath string) *ldap.Conn {
 	ldap.DefaultTimeout = time.Duration(ConnTimeout) * time.Second
 	logger.Debugln("Set AD connection timeout to", ldap.DefaultTimeout)
 	tlsconfig := new(tls.Config)
@@ -54,7 +54,7 @@ func tlsconfigSkipVerify(CRTInsecureSkipVerify bool) *tls.Config {
 	return tlsconfig
 }
 
-func tlsconfigNoSkipVerify(CRTInsecureSkipVerify bool, CRTValidFor, CRTPath string)  *tls.Config{
+func tlsconfigNoSkipVerify(CRTInsecureSkipVerify bool, CRTValidFor, CRTPath string) *tls.Config {
 	tlsconfig := new(tls.Config)
 	caCert, err := ioutil.ReadFile(CRTPath)
 	CheckForError(err)

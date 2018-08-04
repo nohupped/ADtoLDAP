@@ -2,18 +2,18 @@ package gosyncmodules
 
 import (
 	"gopkg.in/ldap.v2"
-//	"fmt"
+	//	"fmt"
 	"gopkg.in/ini.v1"
 )
 
 func InitialPopulateToLdap(ADElements *[]LDAPElement, connectLDAP *ldap.Conn,
-			ReplaceAttributes, MapAttributes *ini.Section, ReturnData bool) []*ldap.AddRequest {
+	ReplaceAttributes, MapAttributes *ini.Section, ReturnData bool) []*ldap.AddRequest {
 	var ReturnConvertedData []*ldap.AddRequest
 	userObjectClass, err := ReplaceAttributes.GetKey("userObjectClass")
 	CheckForError(err)
 	groupObjectClass, err := ReplaceAttributes.GetKey("groupObjectClass")
 	CheckForError(err)
-	mapping := make(map[string] string) //mapping of AD values to ldap values
+	mapping := make(map[string]string) //mapping of AD values to ldap values
 	for _, i := range MapAttributes.KeyStrings() {
 		tmpvar, err := MapAttributes.GetKey(i)
 		CheckForError(err)
@@ -43,7 +43,7 @@ func InitialPopulateToLdap(ADElements *[]LDAPElement, connectLDAP *ldap.Conn,
 				mappingvalue, ok := mapping[key]
 				//uid := maps["uid"]
 				if ok == true {
-					if mappingvalue == "memberUid"{
+					if mappingvalue == "memberUid" {
 						//members := memberTomemberUid(&value)
 						Add.Attribute(mappingvalue, memberTomemberUid(&value, ADElements))
 						continue
@@ -52,16 +52,11 @@ func InitialPopulateToLdap(ADElements *[]LDAPElement, connectLDAP *ldap.Conn,
 					continue
 				}
 
-
 				Add.Attribute(key, value.([]string))
-
-
-
-
 
 			}
 		}
-//		Info.Println(Add)
+		//		Info.Println(Add)
 		if ReturnData == false {
 			err := connectLDAP.Add(Add)
 			logger.Errorln(err)

@@ -2,9 +2,7 @@ package gosyncmodules
 
 import (
 	"gopkg.in/ldap.v2"
-
 )
-
 
 //TODO refactor variable names
 func GetFromLDAP(connect *ldap.Conn, LDAPBaseDN, LDAPFilter string, LDAPAttribute []string, LDAPPage uint32) *[]LDAPElement {
@@ -13,7 +11,7 @@ func GetFromLDAP(connect *ldap.Conn, LDAPBaseDN, LDAPFilter string, LDAPAttribut
 	CheckForError(err)
 	//fmt.Println(len(sr.Entries))
 	ADElements := []LDAPElement{}
-	for _, entry := range sr.Entries{
+	for _, entry := range sr.Entries {
 		NewADEntity := new(LDAPElement)
 		NewADEntity.DN = entry.DN
 		for _, attrib := range entry.Attributes {

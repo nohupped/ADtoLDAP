@@ -2,9 +2,10 @@ package gosyncmodules
 
 import (
 	"gopkg.in/ldap.v2"
-	"strings"
 	"regexp"
+	"strings"
 )
+
 //WrapperStruct to embed *ldap.AddRequest and add a custom method to it.
 type AddRequest struct {
 	*ldap.AddRequest
@@ -14,7 +15,7 @@ func (a *AddRequest) SetDN(dn string) {
 	a.DN = dn
 }
 
-func ConvertRealmToLower(upperrealm []*ldap.AddRequest)  {
+func ConvertRealmToLower(upperrealm []*ldap.AddRequest) {
 
 	r := regexp.MustCompile(`[A-Z]+=`)
 
@@ -26,10 +27,9 @@ func ConvertRealmToLower(upperrealm []*ldap.AddRequest)  {
 		}))
 	}
 
-
 }
 
-func ConvertAttributesToLower(upperAttribute *[]string)  *[]string {
+func ConvertAttributesToLower(upperAttribute *[]string) *[]string {
 	r := regexp.MustCompile(`[A-Z]+=`)
 	var attributeAggregated []string
 	for _, attribute := range *upperAttribute {

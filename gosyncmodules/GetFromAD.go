@@ -12,7 +12,7 @@ func GetFromAD(connect *ldap.Conn, ADBaseDN, ADFilter string, ADAttribute []stri
 	CheckForError(err)
 	//fmt.Println(len(sr.Entries))
 	ADElements := []LDAPElement{}
-	for _, entry := range sr.Entries{
+	for _, entry := range sr.Entries {
 		NewADEntity := new(LDAPElement)
 		NewADEntity.DN = entry.DN
 		for _, attrib := range entry.Attributes {
