@@ -67,7 +67,6 @@ func NewRuntimeConfig(path string) *RuntimeConfig {
 	} else {
 		logger.Warnln("Loglevel not defined in config", path, ". Using system-set DEBUG level.")
 	}
-	r.BaseDNMapping[r.ADServer.BaseDN] = r.LDAPServer.BaseDN
 
 	return r
 }
