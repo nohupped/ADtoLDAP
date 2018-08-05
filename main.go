@@ -109,8 +109,8 @@ func main() {
 		ADElementsConverted := gosyncmodules.InitialPopulateToLdap(ADElements, LDAPConnection, r.ReplaceAttributes, r.MapAttributes, true)
 		LDAPElementsConverted := gosyncmodules.InitialPopulateToLdap(LDAPElements, LDAPConnection, r.ReplaceAttributes, r.MapAttributes, true)
 
-		gosyncmodules.ConvertRealmToLower(ADElementsConverted)
-		log.Debugln("Converted AD Realms to lowercase")
+		//gosyncmodules.ConvertRealmToLower(ADElementsConverted)
+		//log.Debugln("Converted AD Realms to lowercase")
 
 		go gosyncmodules.FindAdds(&ADElementsConverted, &LDAPElementsConverted, LDAPConnection, AddChan, shutdownAddChan)
 		go gosyncmodules.FindDels(&LDAPElementsConverted, &ADElementsConverted, DelChan, shutdownDelChan)
