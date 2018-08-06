@@ -5,10 +5,12 @@ import (
 	//"fmt"
 	"gopkg.in/ini.v1"
 	"gopkg.in/ldap.v2"
+
 )
 
 func InitialrunAD(ADHost, AD_Port, ADUsername, ADPassword, ADBaseDN, ADFilter string, ADAttribute []string,
-	ADPage int, ADConnTimeout int, UseTLS bool, InsecureSkipVerify bool, CRTValidFor, ADCrtPath string, shutdownChannel chan string, ADElementsChan chan *[]LDAPElement) {
+	ADPage int, ADConnTimeout int, UseTLS bool, InsecureSkipVerify bool, CRTValidFor, ADCrtPath string, LDAPBaseDN string,
+		shutdownChannel chan string, ADElementsChan chan *[]LDAPElement) {
 	logger.Infoln("Connecting to AD", ADHost)
 	var connectAD *ldap.Conn
 	if UseTLS == false {
@@ -20,15 +22,17 @@ func InitialrunAD(ADHost, AD_Port, ADUsername, ADPassword, ADBaseDN, ADFilter st
 	defer logger.Infoln("closed")
 	defer connectAD.Close()
 	defer logger.Infoln("Closing connection")
-	ADElements := GetFromAD(connectAD, ADBaseDN, ADFilter, ADAttribute, uint32(ADPage))
+	ADElements := GetFromDS(connectAD, ADBaseDN, ADFilter, ADAttribute, uint32(ADPage))
+	normalizeResult(ADElements, ADBaseDN, LDAPBaseDN)
 	//fmt.Println(reflect.TypeOf(ADElements))
-	//	Info.Println(ADElements)
+	logger.Debugln(ADElements)
 	logger.Infoln("Writing results to ", reflect.TypeOf(ADElementsChan))
-	logger.Infoln("Length of ", reflect.TypeOf(ADElementsChan), "is", len(*ADElements))
-	ADElementsChan <- ADElements
+	logger.Infoln("Length of ", reflect.TypeOf(ADElementsChan), "is", len(ADElements))
+	ADElementsChan <- &ADElements
 	logger.Infoln("Passing", reflect.TypeOf(ADElementsChan), "to Main thread")
 
 }
+
 
 func InitialrunLDAP(LDAPHost, LDAP_Port, LDAPUsername, LDAPPassword, LDAPBaseDN, LDAPFilter string, LDAPAttribute []string,
 	LDAPPage int, LDAPConnTimeout int, LDAPUseTLS bool, LDAPCrtValidFor string, LDAPCrtPath string, LDAPCRTInsecureSkipVerify bool,
@@ -64,12 +68,12 @@ func SyncrunLDAP(LDAPHost, LDAP_Port, LDAPUsername, LDAPPassword, LDAPBaseDN, LD
 			LDAPCRTInsecureSkipVerify, LDAPCrtValidFor, LDAPCrtPath)
 	}
 	defer func() { shutdownChannel <- "Done from func syncrunLDAP" }()
-	LDAPElements := GetFromLDAP(connectLDAP, LDAPBaseDN, LDAPFilter, LDAPAttribute, uint32(LDAPPage))
+	LDAPElements := GetFromDS(connectLDAP, LDAPBaseDN, LDAPFilter, LDAPAttribute, uint32(LDAPPage))
 	//Comment below to log ldapelements
-	//Info.Println(LDAPElements)
-	logger.Infoln("Length of ", reflect.TypeOf(LDAPElementsChan), "is", len(*LDAPElements))
+	logger.Debugln(LDAPElements)
+	logger.Infoln("Length of ", reflect.TypeOf(LDAPElementsChan), "is", len(LDAPElements))
 
-	LDAPElementsChan <- LDAPElements
+	LDAPElementsChan <- &LDAPElements
 	LdapConnectionChan <- connectLDAP
 
 }

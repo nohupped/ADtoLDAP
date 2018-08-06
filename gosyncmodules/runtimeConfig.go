@@ -20,6 +20,7 @@ type RuntimeConfig struct {
 	ReplaceAttributes, MapAttributes *ini.Section
 	Delay                            int
 	LogLevel                         string
+	BaseDNMapping					 map[string]string
 }
 
 type DS struct {

@@ -99,7 +99,7 @@ func main() {
 		go gosyncmodules.InitialrunAD(r.ADServer.Host, r.ADServer.Port, r.ADServer.Username, r.ADServer.Password,
 			r.ADServer.BaseDN, r.ADServer.Filter, r.ADServer.Attributes, r.ADServer.Page,
 			r.ADServer.ConnTimeOut, r.ADServer.UseTLS, r.ADServer.CRTInsecureSkipVerify,
-			r.ADServer.CRTValidFor, r.ADServer.CRTPath, shutdownChannel, ADElementsChan)
+			r.ADServer.CRTValidFor, r.ADServer.CRTPath, r.LDAPServer.BaseDN, shutdownChannel, ADElementsChan)
 		ADElements := <-ADElementsChan
 		LDAPElements := <-LDAPElementsChan
 		LDAPConnection := <-LdapConnectionChan
@@ -109,8 +109,8 @@ func main() {
 		ADElementsConverted := gosyncmodules.InitialPopulateToLdap(ADElements, LDAPConnection, r.ReplaceAttributes, r.MapAttributes, true)
 		LDAPElementsConverted := gosyncmodules.InitialPopulateToLdap(LDAPElements, LDAPConnection, r.ReplaceAttributes, r.MapAttributes, true)
 
-		gosyncmodules.ConvertRealmToLower(ADElementsConverted)
-		log.Debugln("Converted AD Realms to lowercase")
+		//gosyncmodules.ConvertRealmToLower(ADElementsConverted)
+		//log.Debugln("Converted AD Realms to lowercase")
 
 		go gosyncmodules.FindAdds(&ADElementsConverted, &LDAPElementsConverted, LDAPConnection, AddChan, shutdownAddChan)
 		go gosyncmodules.FindDels(&LDAPElementsConverted, &ADElementsConverted, DelChan, shutdownDelChan)

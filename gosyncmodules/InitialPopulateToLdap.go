@@ -2,7 +2,6 @@ package gosyncmodules
 
 import (
 	"gopkg.in/ldap.v2"
-	//	"fmt"
 	"gopkg.in/ini.v1"
 )
 
@@ -30,12 +29,12 @@ func InitialPopulateToLdap(ADElements *[]LDAPElement, connectLDAP *ldap.Conn,
 			for key, value := range maps {
 
 				if key == "objectClass" {
-					if StringInSlice("user", value.([]string)) {
+					if StringInSlice("user", value) {
 						//Add.Attribute(key, []string{"posixAccount", "top", "inetOrgPerson"})
 						Add.Attribute(key, userObjectClass.Strings(","))
 						continue
 					}
-					if StringInSlice("group", value.([]string)) {
+					if StringInSlice("group", value) {
 						Add.Attribute(key, groupObjectClass.Strings(","))
 						continue
 					}
@@ -45,14 +44,14 @@ func InitialPopulateToLdap(ADElements *[]LDAPElement, connectLDAP *ldap.Conn,
 				if ok == true {
 					if mappingvalue == "memberUid" {
 						//members := memberTomemberUid(&value)
-						Add.Attribute(mappingvalue, memberTomemberUid(&value, ADElements))
+						Add.Attribute(mappingvalue, memberTomemberUid(value, ADElements))
 						continue
 					}
-					Add.Attribute(mappingvalue, value.([]string))
+					Add.Attribute(mappingvalue, value)
 					continue
 				}
 
-				Add.Attribute(key, value.([]string))
+				Add.Attribute(key, value)
 
 			}
 		}
