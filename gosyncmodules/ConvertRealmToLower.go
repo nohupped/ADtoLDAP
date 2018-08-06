@@ -69,6 +69,5 @@ func ConvertAttributesToLower(upperAttribute *[]string) *[]string {
 		attributeAggregated = append(attributeAggregated, tmpstring)
 
 	}
-	upperAttribute = &attributeAggregated
 	return upperAttribute
 }
