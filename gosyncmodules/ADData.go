@@ -1,6 +1,6 @@
 package gosyncmodules
 
-type keyvalue map[string][]string
+type keyvalue map[string]interface{}
 
 type LDAPElement struct {
 	DN         string
