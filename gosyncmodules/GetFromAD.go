@@ -5,13 +5,13 @@ import (
 	//"fmt"
 )
 
-func GetFromDS(connect *ldap.Conn, ADBaseDN, ADFilter string, ADAttribute []string, ADPage uint32) []LDAPElement {
+func GetFromAD(connect *ldap.Conn, ADBaseDN, ADFilter string, ADAttribute []string, ADPage uint32) *[]LDAPElement {
 	//sizelimit in searchrequest is the limit, which throws an error when the number of results exceeds the limit.
 	searchRequest := ldap.NewSearchRequest(ADBaseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 0, 0, false, ADFilter, ADAttribute, nil)
 	sr, err := connect.SearchWithPaging(searchRequest, ADPage)
 	CheckForError(err)
 	//fmt.Println(len(sr.Entries))
-	var ADElements []LDAPElement
+	ADElements := []LDAPElement{}
 	for _, entry := range sr.Entries {
 		NewADEntity := new(LDAPElement)
 		NewADEntity.DN = entry.DN
@@ -20,5 +20,5 @@ func GetFromDS(connect *ldap.Conn, ADBaseDN, ADFilter string, ADAttribute []stri
 		}
 		ADElements = append(ADElements, *NewADEntity)
 	}
-	return ADElements
+	return &ADElements
 }
