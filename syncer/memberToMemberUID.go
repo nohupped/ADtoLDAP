@@ -1,31 +1,15 @@
-package gosyncmodules
+package syncer
 
 import (
 	"reflect"
 	"strings"
 )
 
-/*
-func memberTomemberUid(member *interface{}, uid *keyvalue)  []string{
-	Info.Println("Found member attribute ", *member, "converting it to memberUid")
-	matchCN := regexp.MustCompile("CN=")
-	memberlist := make([]string, 0)
-	for _, members := range (*member).([]string) {
-		tmpmember := strings.Split(members, ",")[0]
-		memberclean := matchCN.ReplaceAllString(tmpmember, "")
-		memberlist = append(memberlist, memberclean)
-	}
-	Info.Println("retrieved members as ", memberlist)
-	//fmt.Println(memberlist, "\n\n\n\n")
-	return memberlist
-
-}
-*/
 
 // memberTomemberUid function will populate memberUid attribute with the corresponding uid field
 // from the entire ldap request slice. Parameters are the member attribute slice which is of
 // type interface{}
-func memberTomemberUid(member *interface{}, fullmap *[]LDAPElement) []string {
+func memberToMemberUID(member *interface{}, fullmap *[]LDAPElement) []string {
 	uids := make([]string, 0)
 	for _, members := range (*member).([]string) {
 		uid := checkMemberUIDInLDAPElements(members, fullmap)

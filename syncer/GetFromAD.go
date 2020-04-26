@@ -1,10 +1,11 @@
-package gosyncmodules
+package syncer
 
 import (
 	"gopkg.in/ldap.v2"
 	//"fmt"
 )
 
+// GetFromAD retrives values from AD / Master.
 func GetFromAD(connect *ldap.Conn, ADBaseDN, ADFilter string, ADAttribute []string, ADPage uint32) *[]LDAPElement {
 	//sizelimit in searchrequest is the limit, which throws an error when the number of results exceeds the limit.
 	searchRequest := ldap.NewSearchRequest(ADBaseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 0, 0, false, ADFilter, ADAttribute, nil)

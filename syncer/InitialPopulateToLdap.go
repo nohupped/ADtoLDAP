@@ -1,4 +1,4 @@
-package gosyncmodules
+package syncer
 
 import (
 	"gopkg.in/ldap.v2"
@@ -6,6 +6,7 @@ import (
 	"gopkg.in/ini.v1"
 )
 
+// InitialPopulateToLdap is a wrapper function on top of other functions in this same package.
 func InitialPopulateToLdap(ADElements *[]LDAPElement, connectLDAP *ldap.Conn,
 	ReplaceAttributes, MapAttributes *ini.Section, ReturnData bool) []*ldap.AddRequest {
 	var ReturnConvertedData []*ldap.AddRequest
@@ -24,14 +25,12 @@ func InitialPopulateToLdap(ADElements *[]LDAPElement, connectLDAP *ldap.Conn,
 	logger.Debugln("Userobjectclass of AD will be replaced with", userObjectClass)
 	logger.Debugln("Groupobjectclass of AD will be replaced with", groupObjectClass)
 	for _, i := range *ADElements {
-		//fmt.Println(i.DN)
 		Add := ldap.NewAddRequest(i.DN)
 		for _, maps := range i.attributes {
 			for key, value := range maps {
 
 				if key == "objectClass" {
 					if StringInSlice("user", value.([]string)) {
-						//Add.Attribute(key, []string{"posixAccount", "top", "inetOrgPerson"})
 						Add.Attribute(key, userObjectClass.Strings(","))
 						continue
 					}
@@ -41,11 +40,9 @@ func InitialPopulateToLdap(ADElements *[]LDAPElement, connectLDAP *ldap.Conn,
 					}
 				}
 				mappingvalue, ok := mapping[key]
-				//uid := maps["uid"]
 				if ok == true {
 					if mappingvalue == "memberUid" {
-						//members := memberTomemberUid(&value)
-						Add.Attribute(mappingvalue, memberTomemberUid(&value, ADElements))
+						Add.Attribute(mappingvalue, memberToMemberUID(&value, ADElements))
 						continue
 					}
 					Add.Attribute(mappingvalue, value.([]string))
@@ -56,16 +53,13 @@ func InitialPopulateToLdap(ADElements *[]LDAPElement, connectLDAP *ldap.Conn,
 
 			}
 		}
-		//		Info.Println(Add)
 		if ReturnData == false {
 			err := connectLDAP.Add(Add)
 			logger.Errorln(err)
 		} else {
 			ReturnConvertedData = append(ReturnConvertedData, Add)
 		}
-		//fmt.Println(Add)
 
-		//fmt.Println(err)
 
 	}
 	return ReturnConvertedData

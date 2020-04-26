@@ -1,10 +1,10 @@
-package gosyncmodules
+package syncer
 
 import (
 	"gopkg.in/ldap.v2"
 )
 
-//TODO refactor variable names
+// GetFromLDAP retrives values from LDAP / Slave. 
 func GetFromLDAP(connect *ldap.Conn, LDAPBaseDN, LDAPFilter string, LDAPAttribute []string, LDAPPage uint32) *[]LDAPElement {
 	searchRequest := ldap.NewSearchRequest(LDAPBaseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 0, 0, false, LDAPFilter, LDAPAttribute, nil)
 	sr, err := connect.SearchWithPaging(searchRequest, LDAPPage)

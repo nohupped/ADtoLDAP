@@ -2,17 +2,13 @@ package main
 
 import (
 	"os/user"
-	//	"fmt"
-	"github.com/nohupped/ADtoLDAP/gosyncmodules"
+	"ADtoLDAP/syncer"
 	"os"
 	"reflect"
-	//	"os/signal"
 	"flag"
 	"gopkg.in/ldap.v2"
 	"runtime"
 	"time"
-	//	"bytes"
-	//	"runtime/pprof"
 	"fmt"
 )
 
@@ -30,73 +26,59 @@ import (
 
 func main() {
 
-	// Initialize logger
-
-	// Flags
 	checkSafety := flag.Bool("safe", true, "Set it to false to skip config file securitycheck")
 	configFile := flag.String("configfile", "/etc/ldapsync.ini", "Path to the config file")
 	logfile := flag.String("logfile", "/var/log/ldapsync.log", "Path to log file. Defaults to /var/log/ldapsync.log")
 	sampleConfig := flag.Bool("showSampleConfig", false, "Prints a sample config to STDOUT")
 	flag.Parse()
 	if *sampleConfig == true {
-		fmt.Println(gosyncmodules.SampleConfig)
+		fmt.Println(syncer.SampleConfig)
 		os.Exit(0)
 	}
 
 	username, err := user.Current()
-	gosyncmodules.CheckForError(err)
-	log := gosyncmodules.StartLog(*logfile)
-	defer gosyncmodules.LoggerClose()
+	syncer.CheckForError(err)
+	log := syncer.StartLog(*logfile)
+	defer syncer.LoggerClose()
 	log.Infoln("Running program as", username)
 
 	log.Infoln("safe option set to", *checkSafety)
 	log.Infoln("Config file is, ", *configFile)
 
 	if *checkSafety == true {
-		gosyncmodules.CheckPerm(*configFile)
+		syncer.CheckPerm(*configFile)
 	} else {
 		log.Infoln("Skipping file permission check on", *configFile)
 	}
-	r := gosyncmodules.NewRuntimeConfig(*configFile)
+	r := syncer.NewRuntimeConfig(*configFile)
 
 	//End of variable declaration
-	log.Infoln("ADHost: ", r.ADServer.Host)
-	log.Infoln("ADPort: ", r.ADServer.Port)
-	log.Infoln("r.ADServer.PageSize: ", r.ADServer.Page)
-	log.Infoln("r.ADServer.BaseDN: ", r.ADServer.BaseDN)
-	log.Infoln("ADAttr: ", r.ADServer.Attributes)
-	log.Infoln("r.ADServer.Filter: ", r.ADServer.Filter)
 
-	log.Infoln("r.LDAPServer.Host: ", r.LDAPServer.Host)
-	log.Infoln("LDAPPort: ", r.LDAPServer.Port)
-	log.Infoln("r.LDAPServer.PageSize: ", r.LDAPServer.Page)
-	log.Infoln("r.LDAPServer.BaseDN: ", r.LDAPServer.BaseDN)
-	log.Infoln("LDAPAttr: ", r.LDAPServer.Attributes)
-	log.Infoln("r.LDAPServer.Filter: ", r.LDAPServer.Filter)
+	log.Debugf("%+v\n", *r)
 
 	log.Infoln("Initiating sync")
 
 	for {
-		AddChan := make(chan gosyncmodules.Action)
+		AddChan := make(chan syncer.Action)
 		log.Debugln("Created", reflect.TypeOf(AddChan))
-		DelChan := make(chan gosyncmodules.Action)
+		DelChan := make(chan syncer.Action)
 		log.Debugln("Created", reflect.TypeOf(DelChan))
 		shutdownAddChan := make(chan string)
 		shutdownDelChan := make(chan string)
 		shutdownChannel := make(chan string)
 		LdapConnectionChan := make(chan *ldap.Conn)
 		log.Debugln("Created channel of type", reflect.TypeOf(LdapConnectionChan))
-		ADElementsChan := make(chan *[]gosyncmodules.LDAPElement)
+		ADElementsChan := make(chan *[]syncer.LDAPElement)
 		log.Debugln("Created channel of type", reflect.TypeOf(ADElementsChan))
-		LDAPElementsChan := make(chan *[]gosyncmodules.LDAPElement)
+		LDAPElementsChan := make(chan *[]syncer.LDAPElement)
 		log.Debugln("Created channel of type", reflect.TypeOf(LDAPElementsChan))
 
-		go gosyncmodules.SyncrunLDAP(r.LDAPServer.Host, r.LDAPServer.Port, r.LDAPServer.Username, r.LDAPServer.Password,
+		go syncer.SyncRunLDAP(r.LDAPServer.Host, r.LDAPServer.Port, r.LDAPServer.Username, r.LDAPServer.Password,
 			r.LDAPServer.BaseDN, r.LDAPServer.Filter, r.LDAPServer.Attributes, r.LDAPServer.Page,
 			r.LDAPServer.ConnTimeOut, r.LDAPServer.UseTLS, r.LDAPServer.CRTInsecureSkipVerify,
 			r.LDAPServer.CRTValidFor, r.LDAPServer.CRTPath, shutdownChannel, LDAPElementsChan, LdapConnectionChan,
 			r.ReplaceAttributes, r.MapAttributes)
-		go gosyncmodules.InitialrunAD(r.ADServer.Host, r.ADServer.Port, r.ADServer.Username, r.ADServer.Password,
+		go syncer.SyncRunAD(r.ADServer.Host, r.ADServer.Port, r.ADServer.Username, r.ADServer.Password,
 			r.ADServer.BaseDN, r.ADServer.Filter, r.ADServer.Attributes, r.ADServer.Page,
 			r.ADServer.ConnTimeOut, r.ADServer.UseTLS, r.ADServer.CRTInsecureSkipVerify,
 			r.ADServer.CRTValidFor, r.ADServer.CRTPath, shutdownChannel, ADElementsChan)
@@ -106,14 +88,14 @@ func main() {
 		log.Debugln(<-shutdownChannel)
 		log.Debugln(<-shutdownChannel)
 
-		ADElementsConverted := gosyncmodules.InitialPopulateToLdap(ADElements, LDAPConnection, r.ReplaceAttributes, r.MapAttributes, true)
-		LDAPElementsConverted := gosyncmodules.InitialPopulateToLdap(LDAPElements, LDAPConnection, r.ReplaceAttributes, r.MapAttributes, true)
+		ADElementsConverted := syncer.InitialPopulateToLdap(ADElements, LDAPConnection, r.ReplaceAttributes, r.MapAttributes, true)
+		LDAPElementsConverted := syncer.InitialPopulateToLdap(LDAPElements, LDAPConnection, r.ReplaceAttributes, r.MapAttributes, true)
 
-		gosyncmodules.ConvertRealmToLower(ADElementsConverted)
+		syncer.ConvertRealmToLower(ADElementsConverted)
 		log.Debugln("Converted AD Realms to lowercase")
 
-		go gosyncmodules.FindAdds(&ADElementsConverted, &LDAPElementsConverted, LDAPConnection, AddChan, shutdownAddChan)
-		go gosyncmodules.FindDels(&LDAPElementsConverted, &ADElementsConverted, DelChan, shutdownDelChan)
+		go syncer.FindAdds(&ADElementsConverted, &LDAPElementsConverted, LDAPConnection, AddChan, shutdownAddChan)
+		go syncer.FindDels(&LDAPElementsConverted, &ADElementsConverted, DelChan, shutdownDelChan)
 		counter := 0
 		for {
 			select {
@@ -136,10 +118,10 @@ func main() {
 				}
 			case shutdownAdd := <-shutdownAddChan:
 				log.Debugln(shutdownAdd)
-				counter += 1
+				counter ++
 			case shutdownDel := <-shutdownDelChan:
 				log.Debugln(shutdownDel)
-				counter += 1
+				counter ++
 
 			}
 			if counter == 2 {

@@ -1,4 +1,4 @@
-package gosyncmodules
+package syncer
 
 import (
 	"crypto/tls"
@@ -38,8 +38,6 @@ func ConnectToDirectoryServerTLS(Host, Port string, Username, Password string, C
 	} else {
 		tlsconfig = tlsconfigSkipVerify(CRTInsecureSkipVerify)
 	}
-
-	logger.Debugf("Dialling TLS with config %+v\n", *tlsconfig)
 	logger.Debugf("Nested structs like tls.Config.RootCAs are not logged.")
 	l, err := ldap.DialTLS("tcp", fmt.Sprintf("%s:%s", Host, Port), tlsconfig)
 	CheckForError(err)

@@ -1,4 +1,4 @@
-package gosyncmodules
+package syncer
 
 import (
 	"gopkg.in/ldap.v2"
@@ -6,6 +6,7 @@ import (
 	"sort"
 )
 
+// IfDNExists is used to evaluate if the DN exists in all the AddRequest.
 func IfDNExists(checkfor *ldap.AddRequest, checkin []*ldap.AddRequest) (bool, *ldap.AddRequest) {
 	for _, i := range checkin {
 		if checkfor.DN == i.DN {
@@ -16,8 +17,10 @@ func IfDNExists(checkfor *ldap.AddRequest, checkin []*ldap.AddRequest) (bool, *l
 	return false, nil
 }
 
+// MapADandLDAP (It is a wrong name for this variable) is a map of attribute type and its values.
 type MapADandLDAP map[string][]string
 
+// CheckAttributes compares and evaluates the attributes from both servers and if it doesn't match, rewrites the slave's attribute with that of master's.
 func CheckAttributes(LdapConnection *ldap.Conn, LdapEntry, ADEntry *ldap.AddRequest) {
 	var ADMapAggregated []MapADandLDAP
 	var LDAPMapAggregated []MapADandLDAP

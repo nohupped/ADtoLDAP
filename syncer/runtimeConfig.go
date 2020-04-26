@@ -1,10 +1,11 @@
-package gosyncmodules
+package syncer
 
 import (
 	"gopkg.in/ini.v1"
 )
 
-func GetConfig(configFile string) (*ini.File, error) {
+// getConfig is used to read the config from file and returns an *ini.File object and error.
+func getConfig(configFile string) (*ini.File, error) {
 	var Cfg *ini.File
 	Cfg, err := ini.Load(configFile)
 	if err != nil {
@@ -13,6 +14,7 @@ func GetConfig(configFile string) (*ini.File, error) {
 	return Cfg, err
 }
 
+// RuntimeConfig stores the parsed ini config from file as a struct.
 type RuntimeConfig struct {
 	//	From Server section
 	ADServer                         DS
@@ -22,6 +24,7 @@ type RuntimeConfig struct {
 	LogLevel                         string
 }
 
+// DS is used to store the directory server config
 type DS struct {
 	Host, Port, CRTValidFor, CRTPath, Username, Password,
 	BaseDN, Filter string
@@ -30,11 +33,13 @@ type DS struct {
 	Attributes                    []string
 }
 
+// NewRuntimeConfig is used to return a RuntimeConfig struct. This is populated by reading the server's
+// configuration ini file (default: /etc/ldapsync.ini) and parsing it.
 func NewRuntimeConfig(path string) *RuntimeConfig {
 
 	r := new(RuntimeConfig)
 
-	config, err := GetConfig(path)
+	config, err := getConfig(path)
 	CheckForError(err)
 
 	getDSSections("ADServer", config, &r.ADServer)
