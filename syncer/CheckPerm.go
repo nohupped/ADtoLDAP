@@ -1,4 +1,4 @@
-package gosyncmodules
+package syncer
 
 import (
 	"fmt"
