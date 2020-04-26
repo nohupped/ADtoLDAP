@@ -33,6 +33,8 @@ tcpdump -v -XX
 
 ## How to install
 
+Since this program uses versioned modules, it requires a minimum of **go-1.11** to compile.
+
 ```bash
 go get github.com/nohupped/ADtoLDAP
 ```

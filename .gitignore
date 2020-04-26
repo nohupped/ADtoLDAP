@@ -11,6 +11,8 @@
 !*.py
 !*.gitignore
 !*.md
+!*.mod
+!*.sum
 
 /Daemonizer/build/
 /Daemonizer/dist/
