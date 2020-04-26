@@ -2,7 +2,7 @@ package main
 
 import (
 	"os/user"
-	"ADtoLDAP/syncer"
+	"github.com/nohupped/ADtoLDAP/syncer"
 	"os"
 	"reflect"
 	"flag"
